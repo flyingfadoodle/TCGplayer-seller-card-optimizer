@@ -5,353 +5,220 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TCGPlayer Optimizer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:       #0c0c0e;
-      --surface:  #141418;
-      --border:   #232329;
+      --bg:       #0a0a0c;
+      --surface:  #111115;
+      --surface2: #18181e;
+      --border:   #202028;
+      --border2:  #2c2c38;
       --accent:   #e8c547;
-      --accent2:  #4fc3f7;
-      --text:     #f0ede6;
-      --muted:    #6b6870;
-      --red:      #ff6b6b;
-      --green:    #69db7c;
+      --accent2:  #5bc8f5;
+      --accent3:  #a78bfa;
+      --text:     #ede9e0;
+      --muted:    #64616e;
+      --muted2:   #44414e;
+      --green:    #6ee7a0;
+      --red:      #f87171;
+      --orange:   #fb923c;
       --mono:     'DM Mono', monospace;
       --sans:     'Syne', sans-serif;
+      --radius:   8px;
     }
 
-    html, body {
-      height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      font-size: 15px;
-      line-height: 1.5;
-    }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.5; }
 
-    /* ── Grain overlay ── */
     body::before {
       content: '';
       position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 9999;
-      opacity: 0.35;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: 0.4;
     }
 
-    /* ── Layout ── */
-    .shell {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 60px 24px 80px;
-    }
+    .shell { max-width: 980px; margin: 0 auto; padding: 48px 20px 100px; }
 
     /* ── Header ── */
-    header {
-      margin-bottom: 52px;
-      animation: fadeUp 0.6s ease both;
-    }
-    .wordmark {
-      font-size: 11px;
-      font-family: var(--mono);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 12px;
-    }
-    h1 {
-      font-size: clamp(28px, 5vw, 42px);
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-    }
-    h1 span { color: var(--accent); }
-    .tagline {
-      margin-top: 8px;
-      color: var(--muted);
-      font-family: var(--mono);
-      font-size: 13px;
+    header { margin-bottom: 44px; animation: up 0.5s ease both; }
+    .wordmark { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    h1 { font-size: clamp(26px, 4.5vw, 40px); font-weight: 800; letter-spacing: -0.025em; line-height: 1.1; }
+    h1 em { color: var(--accent); font-style: normal; }
+    .tagline { margin-top: 6px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+    /* ── Two-col layout ── */
+    .layout { display: grid; grid-template-columns: 320px 1fr; gap: 24px; align-items: start; }
+    @media (max-width: 700px) { .layout { grid-template-columns: 1fr; } }
+
+    /* ── Sidebar ── */
+    .sidebar { position: sticky; top: 20px; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; animation: up 0.5s ease both; }
+
+    .panel-title {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
     }
 
-    /* ── Search form ── */
-    .search-box {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      animation: fadeUp 0.6s 0.1s ease both;
-    }
-    .search-box input {
-      flex: 1;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: var(--sans);
-      font-size: 15px;
-      padding: 14px 18px;
-      border-radius: 6px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .search-box input:focus { border-color: var(--accent); }
-    .search-box input::placeholder { color: var(--muted); }
+    /* Game pills */
+    .game-row { display: flex; gap: 6px; margin-bottom: 16px; }
+    .gpill { padding: 5px 14px; border-radius: 999px; border: 1px solid var(--border2); background: transparent; color: var(--muted); font-family: var(--mono); font-size: 11px; cursor: pointer; transition: all 0.15s; }
+    .gpill:hover { border-color: var(--accent); color: var(--accent); }
+    .gpill.active { background: var(--accent); border-color: var(--accent); color: #0a0a0c; font-weight: 500; }
 
-    .btn {
-      padding: 14px 24px;
-      background: var(--accent);
-      color: #0c0c0e;
-      border: none;
-      border-radius: 6px;
-      font-family: var(--sans);
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: opacity 0.15s, transform 0.1s;
+    /* Card slots */
+    .card-slot {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px 14px; margin-bottom: 10px; position: relative;
     }
-    .btn:hover { opacity: 0.88; }
-    .btn:active { transform: scale(0.97); }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .slot-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .slot-name { flex: 1; background: transparent; border: none; border-bottom: 1px solid var(--border2); color: var(--text); font-family: var(--sans); font-size: 13px; padding: 4px 0; outline: none; }
+    .slot-name:focus { border-color: var(--accent); }
+    .slot-name::placeholder { color: var(--muted2); }
+    .slot-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 4px; transition: color 0.15s; }
+    .slot-remove:hover { color: var(--red); }
 
-    /* ── Game selector ── */
-    .game-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 32px;
-      animation: fadeUp 0.6s 0.15s ease both;
+    .slot-edition { width: 100%; }
+    .slot-edition select, .slot-edition input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border2); color: var(--text);
+      font-family: var(--mono); font-size: 11px; padding: 6px 10px; border-radius: 4px; outline: none;
+      transition: border-color 0.15s;
     }
-    .game-pill {
-      padding: 6px 16px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--muted);
-      font-family: var(--mono);
-      font-size: 12px;
-      letter-spacing: 0.05em;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .game-pill:hover { border-color: var(--accent); color: var(--accent); }
-    .game-pill.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #0c0c0e;
-      font-weight: 500;
-    }
+    .slot-edition select:focus, .slot-edition input:focus { border-color: var(--accent2); }
+    .slot-edition select option { background: var(--bg); }
+    .edition-toggle { font-family: var(--mono); font-size: 10px; color: var(--accent2); cursor: pointer; margin-bottom: 6px; display: block; }
+    .edition-toggle:hover { text-decoration: underline; }
 
-    /* ── Status bar ── */
-    #status {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 28px;
-      min-height: 18px;
-      animation: fadeUp 0.6s 0.2s ease both;
+    .add-card-btn {
+      width: 100%; padding: 8px; background: transparent; border: 1px dashed var(--border2);
+      border-radius: 6px; color: var(--muted); font-family: var(--mono); font-size: 11px;
+      cursor: pointer; transition: all 0.15s; margin-bottom: 14px;
     }
-    #status.error { color: var(--red); }
-    #status.ok    { color: var(--green); }
+    .add-card-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-    /* ── Results ── */
-    #results { animation: fadeUp 0.4s ease both; }
-
-    .section-label {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 14px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
+    .search-btn {
+      width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 6px;
+      color: #0a0a0c; font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s; letter-spacing: -0.01em;
     }
+    .search-btn:hover { opacity: 0.88; }
+    .search-btn:active { transform: scale(0.98); }
+    .search-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-    /* Card grid */
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 12px;
-      margin-bottom: 40px;
+    /* File load */
+    .file-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 8px; }
+    #fileInput { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--muted); font-family: var(--mono); font-size: 11px; padding: 8px 10px; border-radius: 6px; cursor: pointer; }
+
+    /* Status */
+    #status { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 12px; min-height: 16px; }
+    #status.err { color: var(--red); }
+    #status.ok  { color: var(--green); }
+
+    /* ── Main results ── */
+    .main { animation: up 0.5s 0.1s ease both; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 2px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+    .tab {
+      padding: 10px 18px; background: none; border: none; border-bottom: 2px solid transparent;
+      color: var(--muted); font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+      text-transform: uppercase; cursor: pointer; transition: all 0.15s; margin-bottom: -1px;
     }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab .badge-num { display: inline-block; background: var(--surface2); border-radius: 4px; padding: 1px 6px; font-size: 10px; margin-left: 6px; color: var(--muted); }
+    .tab.active .badge-num { background: var(--accent); color: #0a0a0c; }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 80px 0; color: var(--muted); }
+    .empty-icon { font-size: 36px; margin-bottom: 14px; opacity: 0.4; }
+    .empty p { font-family: var(--mono); font-size: 12px; line-height: 1.8; }
+
+    /* ── Combo results ── */
+    .combo-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px 20px; margin-bottom: 12px; transition: border-color 0.15s;
+    }
+    .combo-card:hover { border-color: var(--border2); }
+    .combo-card.top { border-color: var(--accent); }
+
+    .combo-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .combo-seller { font-size: 15px; font-weight: 700; }
+    .combo-total { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--green); }
+    .combo-rank { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-right: 10px; }
+
+    .combo-listings { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+    .combo-listing-item {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px;
+    }
+    .cli-name { font-size: 12px; font-weight: 600; margin-bottom: 2px; line-height: 1.3; }
+    .cli-set { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-bottom: 6px; }
+    .cli-price { font-family: var(--mono); font-size: 14px; color: var(--accent); font-weight: 500; }
+    .cli-cond { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Cards grid ── */
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 28px; }
     .card-tile {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
-      cursor: pointer;
-      transition: border-color 0.15s, transform 0.15s;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px; cursor: pointer; transition: border-color 0.15s, transform 0.12s;
       position: relative;
     }
     .card-tile:hover { border-color: var(--accent2); transform: translateY(-2px); }
-    .card-tile.selected { border-color: var(--accent); }
-    .card-tile .ct-name {
-      font-weight: 700;
-      font-size: 14px;
-      margin-bottom: 4px;
-      line-height: 1.3;
-    }
-    .card-tile .ct-set {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-    .card-tile .ct-price {
-      font-family: var(--mono);
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--accent);
-    }
-    .card-tile .ct-price-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--muted);
-    }
-    .card-tile .ct-link {
-      position: absolute;
-      top: 12px; right: 12px;
-      font-size: 10px;
-      font-family: var(--mono);
-      color: var(--muted);
-      text-decoration: none;
-    }
-    .card-tile .ct-link:hover { color: var(--accent2); }
+    .card-tile.sel  { border-color: var(--accent); }
+    .ct-name { font-size: 13px; font-weight: 700; margin-bottom: 3px; line-height: 1.3; padding-right: 28px; }
+    .ct-set  { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-bottom: 8px; }
+    .ct-price-lbl { font-family: var(--mono); font-size: 9px; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.08em; }
+    .ct-price { font-family: var(--mono); font-size: 15px; color: var(--accent); font-weight: 500; }
+    .ct-ext { position: absolute; top: 10px; right: 10px; font-size: 11px; color: var(--muted2); text-decoration: none; }
+    .ct-ext:hover { color: var(--accent2); }
 
-    /* Sellers table */
-    .sellers-wrap { margin-bottom: 40px; }
-    .sellers-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-    }
-    .sellers-for {
-      font-size: 13px;
-      color: var(--muted);
-      font-family: var(--mono);
-    }
+    /* ── Sellers table ── */
+    .sellers-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+    .sellers-for { font-family: var(--mono); font-size: 11px; color: var(--muted); }
     .sellers-for strong { color: var(--text); }
+    .clear-btn { font-family: var(--mono); font-size: 10px; background: none; border: 1px solid var(--border2); color: var(--muted); padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+    .clear-btn:hover { border-color: var(--red); color: var(--red); }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead th { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    tbody tr:hover { background: var(--surface2); }
+    tbody td { padding: 10px 12px; vertical-align: middle; }
+    .td-price { font-family: var(--mono); font-weight: 500; color: var(--green); }
+    .td-seller { font-weight: 600; font-size: 13px; }
+    .td-card { color: var(--muted); font-size: 11px; }
+    .cond-badge {
+      display: inline-block; padding: 2px 7px; border-radius: 4px;
+      font-family: var(--mono); font-size: 10px; background: var(--surface2); color: var(--muted);
     }
-    thead th {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      text-align: left;
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--border);
-    }
-    tbody tr {
-      border-bottom: 1px solid var(--border);
-      transition: background 0.1s;
-    }
-    tbody tr:hover { background: var(--surface); }
-    tbody td {
-      padding: 11px 12px;
-      vertical-align: middle;
-    }
-    .td-price {
-      font-family: var(--mono);
-      font-weight: 500;
-      color: var(--green);
-    }
-    .td-seller { font-weight: 600; }
-    .td-condition {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--muted);
-    }
-    .td-ship {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--muted);
-    }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-family: var(--mono);
-      font-size: 10px;
-      background: var(--border);
-      color: var(--muted);
-    }
-    .badge.nm { background: #1a2e1a; color: var(--green); }
-    .badge.lp { background: #1e2a18; color: #a8d08d; }
-    .badge.mp { background: #2e2818; color: #d4b483; }
-    .badge.hp { background: #2e1a1a; color: var(--red); }
+    .cond-nm { background: #0e2218; color: var(--green); }
+    .cond-lp { background: #1a2710; color: #86efac; }
+    .cond-mp { background: #271f0a; color: var(--orange); }
+    .cond-hp { background: #270d0d; color: var(--red); }
 
     /* Export */
-    .export-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 28px;
-    }
-    .btn-sm {
-      padding: 8px 16px;
-      font-size: 12px;
-      background: var(--surface);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-family: var(--mono);
-      cursor: pointer;
-      transition: border-color 0.15s;
-    }
-    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+    .export-row { display: flex; gap: 8px; margin-top: 20px; }
+    .exp-btn { padding: 7px 14px; background: var(--surface); border: 1px solid var(--border2); color: var(--muted); font-family: var(--mono); font-size: 11px; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+    .exp-btn:hover { border-color: var(--accent); color: var(--accent); }
 
     /* Spinner */
-    .spinner {
-      display: inline-block;
-      width: 12px; height: 12px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
+    .spin { display: inline-block; width: 10px; height: 10px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: rotate 0.7s linear infinite; vertical-align: middle; margin-right: 5px; }
 
-    /* Notice box */
-    .notice {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      border-radius: 6px;
-      padding: 16px 18px;
-      font-family: var(--mono);
-      font-size: 12px;
-      line-height: 1.7;
-      color: var(--muted);
-      margin-bottom: 32px;
-      animation: fadeUp 0.6s 0.25s ease both;
-    }
+    /* Section label */
+    .sec-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+    /* Highlight chip */
+    .chip { display: inline-block; background: var(--surface2); border: 1px solid var(--border2); border-radius: 4px; font-family: var(--mono); font-size: 10px; padding: 2px 8px; color: var(--muted); margin: 2px; }
+    .chip.active { background: #1a1800; border-color: var(--accent); color: var(--accent); }
+
+    /* Instructions */
+    .notice { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent2); border-radius: var(--radius); padding: 14px 16px; font-family: var(--mono); font-size: 11px; line-height: 1.8; color: var(--muted); margin-bottom: 20px; }
     .notice strong { color: var(--text); }
+    .notice code { background: var(--surface2); padding: 1px 5px; border-radius: 3px; color: var(--accent2); font-size: 10px; }
 
-    /* Empty state */
-    .empty {
-      text-align: center;
-      padding: 60px 0;
-      color: var(--muted);
-      font-family: var(--mono);
-      font-size: 13px;
-    }
-
-    /* Animations */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    @keyframes up     { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform:none; } }
+    @keyframes rotate { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -359,212 +226,355 @@
 
   <header>
     <div class="wordmark">TCGPlayer Optimizer</div>
-    <h1>Find cards.<br><span>Compare sellers.</span></h1>
-    <div class="tagline">// MTG &amp; Pokémon — powered by tcgplayer.com</div>
+    <h1>Find sellers with<br><em>exactly what you want.</em></h1>
+    <div class="tagline">// Multi-card combo search · Version filtering · Bundle pricing</div>
   </header>
 
-  <div class="notice">
-    <strong>How to use:</strong> This UI reads data fetched by the Python scraper (<code>scraper.py</code>).<br>
-    Run <code>python scraper.py "Charizard" --game pokemon --output data.json</code>, then load the JSON below — or use <strong>Live Fetch</strong> (requires local proxy server, see README).
+  <div class="layout">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+
+      <div class="panel" style="animation-delay:0s">
+        <div class="panel-title">Game</div>
+        <div class="game-row">
+          <button class="gpill active" data-game="pokemon">Pokémon</button>
+          <button class="gpill" data-game="mtg">MTG</button>
+        </div>
+
+        <div class="panel-title" style="margin-top:4px">
+          Cards to find
+          <span style="font-size:9px;color:var(--muted2)">ALL must match</span>
+        </div>
+
+        <div id="cardSlots"></div>
+        <button class="add-card-btn" id="addCardBtn">+ Add another card</button>
+
+        <button class="search-btn" id="searchBtn">Search TCGPlayer</button>
+        <div id="status"></div>
+      </div>
+
+      <div class="panel" style="animation-delay:0.08s">
+        <label class="file-label">Or load saved results (.json)</label>
+        <input type="file" id="fileInput" accept=".json" />
+      </div>
+
+    </aside>
+
+    <!-- ── Main ── -->
+    <main class="main">
+
+      <div class="notice" id="helpNotice">
+        <strong>How it works:</strong><br>
+        1. Add one or more cards + pick their <strong>edition/set</strong> from the dropdown (or type a custom version).<br>
+        2. Click <strong>Search TCGPlayer</strong> — this calls your local proxy server.<br>
+        3. Or run <code>python scraper.py --cards "Black Lotus:Alpha" "Tropical Island:Unlimited" --game mtg --output combo.json</code> and load the file here.<br>
+        The <strong>Bundles</strong> tab shows sellers who carry <em>all</em> cards, ranked cheapest first.
+      </div>
+
+      <div class="tabs" id="tabs" style="display:none">
+        <button class="tab active" data-tab="bundles">Bundles <span class="badge-num" id="bundleCount">0</span></button>
+        <button class="tab" data-tab="cards">Cards <span class="badge-num" id="cardCount">0</span></button>
+        <button class="tab" data-tab="sellers">All Listings <span class="badge-num" id="sellerCount">0</span></button>
+      </div>
+
+      <div id="tabContent"></div>
+
+    </main>
   </div>
-
-  <!-- Game picker -->
-  <div class="game-row">
-    <button class="game-pill active" data-game="pokemon">Pokémon</button>
-    <button class="game-pill" data-game="mtg">Magic: The Gathering</button>
-  </div>
-
-  <!-- Search -->
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Card name — e.g. Charizard, Black Lotus…" autocomplete="off" />
-    <button class="btn" id="fetchBtn">Search</button>
-  </div>
-
-  <div id="status"></div>
-
-  <!-- Load JSON file -->
-  <div style="margin-bottom:32px; animation: fadeUp 0.6s 0.2s ease both;">
-    <label style="font-family:var(--mono);font-size:11px;color:var(--muted);display:block;margin-bottom:8px;">OR LOAD SCRAPER OUTPUT (.json)</label>
-    <input type="file" id="fileInput" accept=".json" style="font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:6px;width:100%;cursor:pointer;" />
-  </div>
-
-  <div id="results"></div>
-
 </div>
 
 <script>
+// ── Data ───────────────────────────────────────────────────────────────────
+const MTG_SETS = ["Alpha","Beta","Unlimited","Revised","4th Edition","5th Edition","6th Edition","7th Edition","8th Edition","9th Edition","10th Edition","Arabian Nights","Antiquities","Legends","The Dark","Fallen Empires","Ice Age","Homelands","Alliances","Mirage","Visions","Weatherlight","Tempest","Stronghold","Exodus","Urza's Saga","Urza's Legacy","Urza's Destiny","Mercadian Masques","Nemesis","Prophecy","Invasion","Planeshift","Apocalypse","Odyssey","Torment","Judgment","Onslaught","Legions","Scourge","Mirrodin","Darksteel","Fifth Dawn","Champions of Kamigawa","Ravnica","Innistrad","Return to Ravnica","Theros","Khans of Tarkir","Battle for Zendikar","Shadows over Innistrad","Kaladesh","Amonkhet","Ixalan","Guilds of Ravnica","War of the Spark","Throne of Eldraine","Ikoria","Kaldheim","Strixhaven","Innistrad: Midnight Hunt","Kamigawa: Neon Dynasty","Streets of New Capenna","The Brothers' War","March of the Machine","Wilds of Eldraine","The Lost Caverns of Ixalan","Murders at Karlov Manor","Outlaws of Thunder Junction","Bloomburrow","Duskmourn","Modern Horizons","Modern Horizons 2","Modern Horizons 3","Commander","Double Masters","Jumpstart"];
+
+const POKEMON_SETS = ["Base Set","Base Set Shadowless","Base Set 1st Edition","Jungle","Fossil","Team Rocket","Gym Heroes","Gym Challenge","Neo Genesis","Neo Discovery","Neo Revelation","Neo Destiny","Legendary Collection","Expedition","Aquapolis","Skyridge","Ruby & Sapphire","Sandstorm","Dragon","Team Magma vs Team Aqua","Hidden Legends","FireRed & LeafGreen","Team Rocket Returns","Deoxys","Emerald","Unseen Forces","Delta Species","Legend Maker","Holon Phantoms","Crystal Guardians","Dragon Frontiers","Power Keepers","Diamond & Pearl","Mysterious Treasures","Secret Wonders","Great Encounters","Majestic Dawn","Legends Awakened","Stormfront","Platinum","Rising Rivals","Supreme Victors","Arceus","HeartGold SoulSilver","Unleashed","Undaunted","Triumphant","Call of Legends","Black & White","Emerging Powers","Noble Victories","Next Destinies","Dark Explorers","Dragons Exalted","Boundaries Crossed","Plasma Storm","Plasma Freeze","Plasma Blast","Legendary Treasures","XY","Flashfire","Furious Fists","Phantom Forces","Primal Clash","Roaring Skies","Ancient Origins","BREAKthrough","BREAKpoint","Fates Collide","Steam Siege","Evolutions","Sun & Moon","Guardians Rising","Burning Shadows","Crimson Invasion","Ultra Prism","Forbidden Light","Celestial Storm","Lost Thunder","Team Up","Unbroken Bonds","Unified Minds","Cosmic Eclipse","Sword & Shield","Rebel Clash","Darkness Ablaze","Champion's Path","Vivid Voltage","Battle Styles","Chilling Reign","Evolving Skies","Fusion Strike","Brilliant Stars","Astral Radiance","Lost Origin","Silver Tempest","Crown Zenith","Scarlet & Violet","Paldea Evolved","Obsidian Flames","Paradox Rift","Paldean Fates","Temporal Forces","Twilight Masquerade","Shrouded Fable","Stellar Crown","Surging Sparks","Prismatic Evolutions","Destined Rivals"];
+
 // ── State ──────────────────────────────────────────────────────────────────
-let state = { cards: [], sellers: [], selectedCard: null, game: 'pokemon' };
+let state = {
+  game: 'pokemon',
+  slots: [],           // [{name, edition, customEdition, useCustom}]
+  cards: [],
+  sellers: [],
+  combos: [],
+  searchKeys: [],
+  activeTab: 'bundles',
+  filterSeller: null,
+  filterCard: null,
+};
+
+// ── Init ───────────────────────────────────────────────────────────────────
+addSlot(); addSlot();
+renderSlots();
+renderTabContent();
 
 // ── Game pills ─────────────────────────────────────────────────────────────
-document.querySelectorAll('.game-pill').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.game-pill').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    state.game = btn.dataset.game;
-  });
-});
+document.querySelectorAll('.gpill').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.gpill').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  state.game = b.dataset.game;
+  renderSlots();
+}));
+
+// ── Slot management ────────────────────────────────────────────────────────
+document.getElementById('addCardBtn').addEventListener('click', () => { addSlot(); renderSlots(); });
+
+function addSlot() {
+  state.slots.push({ name: '', edition: '', customEdition: '', useCustom: false });
+}
+
+function removeSlot(i) {
+  state.slots.splice(i, 1);
+  if (!state.slots.length) addSlot();
+  renderSlots();
+}
+
+function renderSlots() {
+  const sets = state.game === 'mtg' ? MTG_SETS : POKEMON_SETS;
+  const container = document.getElementById('cardSlots');
+  container.innerHTML = state.slots.map((slot, i) => `
+    <div class="card-slot">
+      <div class="slot-row">
+        <input class="slot-name" type="text" placeholder="Card name…" value="${esc(slot.name)}"
+          oninput="state.slots[${i}].name = this.value" />
+        ${state.slots.length > 1 ? `<button class="slot-remove" onclick="removeSlot(${i})">×</button>` : ''}
+      </div>
+      <div class="slot-edition">
+        <span class="edition-toggle" onclick="toggleCustom(${i})">
+          ${slot.useCustom ? '↩ Use dropdown' : '✎ Type custom edition'}
+        </span>
+        ${slot.useCustom
+          ? `<input type="text" placeholder="e.g. Unlimited 1st Edition…" value="${esc(slot.customEdition)}"
+               oninput="state.slots[${i}].customEdition = this.value" />`
+          : `<select onchange="state.slots[${i}].edition = this.value">
+               <option value="">— Any edition —</option>
+               ${sets.map(s => `<option value="${esc(s)}" ${slot.edition===s?'selected':''}>${esc(s)}</option>`).join('')}
+             </select>`
+        }
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleCustom(i) {
+  state.slots[i].useCustom = !state.slots[i].useCustom;
+  renderSlots();
+}
+
+// ── Search ─────────────────────────────────────────────────────────────────
+document.getElementById('searchBtn').addEventListener('click', doSearch);
+
+async function doSearch() {
+  const valid = state.slots.filter(s => s.name.trim());
+  if (!valid.length) { setStatus('Add at least one card name.', 'err'); return; }
+
+  setStatus('<span class="spin"></span>Calling local proxy…');
+  document.getElementById('searchBtn').disabled = true;
+
+  const params = valid.map(s => {
+    const ed = s.useCustom ? s.customEdition : s.edition;
+    return `card=${encodeURIComponent(s.name.trim() + (ed ? ':' + ed : ''))}`;
+  }).join('&');
+
+  try {
+    const res = await fetch(`http://localhost:7331/search?${params}&game=${state.game}`);
+    if (!res.ok) throw new Error(`Proxy error ${res.status}`);
+    loadData(await res.json());
+    setStatus(`Done. ${state.combos.length} bundle(s) found.`, 'ok');
+  } catch (err) {
+    setStatus(`Proxy not running — use the file loader. (${err.message})`, 'err');
+  } finally {
+    document.getElementById('searchBtn').disabled = false;
+  }
+}
 
 // ── File loader ────────────────────────────────────────────────────────────
 document.getElementById('fileInput').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
     try {
-      const data = JSON.parse(ev.target.result);
-      state.cards   = data.cards   || [];
-      state.sellers = data.sellers || [];
-      state.selectedCard = null;
-      setStatus(`Loaded ${state.cards.length} card(s) and ${state.sellers.length} seller listing(s) from file.`, 'ok');
-      render();
-    } catch {
-      setStatus('Failed to parse JSON file.', 'error');
-    }
+      loadData(JSON.parse(ev.target.result));
+      setStatus(`Loaded: ${state.cards.length} card(s), ${state.sellers.length} listing(s), ${state.combos.length} bundle(s).`, 'ok');
+    } catch { setStatus('Failed to parse JSON.', 'err'); }
   };
   reader.readAsText(file);
 });
 
-// ── Search (calls local proxy) ─────────────────────────────────────────────
-document.getElementById('fetchBtn').addEventListener('click', doSearch);
-document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
-
-async function doSearch() {
-  const q = document.getElementById('searchInput').value.trim();
-  if (!q) return;
-  setStatus('<span class="spinner"></span>Fetching from local proxy…');
-  document.getElementById('fetchBtn').disabled = true;
-
-  try {
-    const res = await fetch(`http://localhost:7331/search?q=${encodeURIComponent(q)}&game=${state.game}`);
-    if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
-    const data = await res.json();
-    state.cards   = data.cards   || [];
-    state.sellers = data.sellers || [];
-    state.selectedCard = null;
-    setStatus(`Found ${state.cards.length} card(s), ${state.sellers.length} seller listing(s).`, 'ok');
-    render();
-  } catch (err) {
-    setStatus(`Proxy not running — use the file loader instead. (${err.message})`, 'error');
-  } finally {
-    document.getElementById('fetchBtn').disabled = false;
-  }
+function loadData(data) {
+  state.cards      = data.cards      || [];
+  state.sellers    = data.sellers    || [];
+  state.combos     = data.combos     || [];
+  state.searchKeys = data.search_keys || [...new Set(state.sellers.map(s => s.search_key))];
+  state.activeTab  = 'bundles';
+  state.filterSeller = null;
+  state.filterCard   = null;
+  document.getElementById('helpNotice').style.display = 'none';
+  document.getElementById('tabs').style.display = 'flex';
+  updateCounts();
+  renderTabContent();
 }
 
-// ── Render ─────────────────────────────────────────────────────────────────
-function render() {
-  const el = document.getElementById('results');
-  if (!state.cards.length) { el.innerHTML = '<div class="empty">No results yet. Run a search or load a JSON file.</div>'; return; }
+// ── Tabs ───────────────────────────────────────────────────────────────────
+document.getElementById('tabs').addEventListener('click', e => {
+  const btn = e.target.closest('.tab');
+  if (!btn) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  state.activeTab = btn.dataset.tab;
+  renderTabContent();
+});
 
-  const sellersForCard = state.selectedCard
-    ? state.sellers.filter(s => s.card_name === state.selectedCard)
-    : state.sellers;
+function updateCounts() {
+  document.getElementById('bundleCount').textContent = state.combos.length;
+  document.getElementById('cardCount').textContent   = state.cards.length;
+  document.getElementById('sellerCount').textContent = state.sellers.length;
+}
 
-  el.innerHTML = `
-    <div class="section-label">Cards — ${state.cards.length} result(s)</div>
-    <div class="cards-grid">${state.cards.map(cardTile).join('')}</div>
+// ── Render dispatcher ──────────────────────────────────────────────────────
+function renderTabContent() {
+  const el = document.getElementById('tabContent');
+  if (!state.cards.length && !state.combos.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🃏</div><p>No results yet.<br>Build your card list and hit Search,<br>or load a JSON file from the scraper.</p></div>`;
+    return;
+  }
+  if (state.activeTab === 'bundles') el.innerHTML = renderBundles();
+  if (state.activeTab === 'cards')   el.innerHTML = renderCards();
+  if (state.activeTab === 'sellers') el.innerHTML = renderSellers();
 
-    <div class="sellers-wrap">
-      <div class="sellers-header">
-        <div class="section-label" style="margin-bottom:0">Seller Listings</div>
-        <div class="sellers-for">
-          ${state.selectedCard ? `Showing: <strong>${state.selectedCard}</strong>` : `All cards`}
-          ${state.selectedCard ? `<button class="btn-sm" onclick="clearCardFilter()" style="margin-left:10px">✕ clear</button>` : ''}
-        </div>
-      </div>
-      ${sellersForCard.length ? sellersTable(sellersForCard) : '<div class="empty" style="padding:30px 0">No seller data. Click a card to filter, or load a file with sellers.</div>'}
-    </div>
-
-    <div class="export-row">
-      <button class="btn-sm" onclick="exportCSV()">Export CSV</button>
-      <button class="btn-sm" onclick="exportJSON()">Export JSON</button>
-    </div>
-  `;
-
-  // Card click handlers
-  document.querySelectorAll('.card-tile').forEach(tile => {
-    tile.addEventListener('click', () => {
-      const name = tile.dataset.name;
-      state.selectedCard = state.selectedCard === name ? null : name;
-      render();
+  // Attach card tile click
+  document.querySelectorAll('.card-tile').forEach(t => {
+    t.addEventListener('click', () => {
+      state.filterCard = state.filterCard === t.dataset.name ? null : t.dataset.name;
+      renderTabContent();
     });
   });
 }
 
-function cardTile(c) {
-  const sel = state.selectedCard === c.name ? 'selected' : '';
-  return `
-    <div class="card-tile ${sel}" data-name="${esc(c.name)}">
-      <a class="ct-link" href="${esc(c.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗ view</a>
-      <div class="ct-name">${esc(c.name)}</div>
-      <div class="ct-set">${esc(c.set)}</div>
-      <div class="ct-price-label">Market Price</div>
-      <div class="ct-price">${esc(c.market_price)}</div>
-    </div>`;
+// ── Bundles tab ────────────────────────────────────────────────────────────
+function renderBundles() {
+  if (!state.combos.length) {
+    return `<div class="empty"><div class="empty-icon">🔍</div><p>No sellers found carrying <strong>all</strong> requested cards.<br>Try broadening the edition filter or adding more sellers via the scraper.</p></div>`;
+  }
+  return state.combos.map((c, idx) => `
+    <div class="combo-card ${idx===0?'top':''}">
+      <div class="combo-header">
+        <div>
+          <span class="combo-rank">#${idx+1}</span>
+          <span class="combo-seller">${esc(c.seller)}</span>
+        </div>
+        <div>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-right:12px">${c.cards_count} card${c.cards_count>1?'s':''}</span>
+          <span class="combo-total">${esc(c.total_display)}</span>
+        </div>
+      </div>
+      <div class="combo-listings">
+        ${c.listings.map(l => `
+          <a class="combo-listing-item" href="${esc(l.card_url)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block">
+            <div class="cli-name">${esc(l.card_name)}</div>
+            <div class="cli-set">${esc(l.set || l.edition)}</div>
+            <div class="cli-price">${esc(l.price)}</div>
+            <div class="cli-cond">${esc(l.condition)}</div>
+          </a>`).join('')}
+      </div>
+    </div>`).join('') + exportRow();
 }
 
-function sellersTable(sellers) {
-  const rows = sellers.map(s => `
+// ── Cards tab ──────────────────────────────────────────────────────────────
+function renderCards() {
+  if (!state.cards.length) return `<div class="empty"><p>No cards loaded.</p></div>`;
+  return `
+    <div class="sec-label">Cards — ${state.cards.length} result(s)  ${state.filterCard ? `<button class="clear-btn" onclick="state.filterCard=null;renderTabContent()">✕ clear filter</button>` : ''}</div>
+    <div class="cards-grid">
+      ${state.cards.map(c => `
+        <div class="card-tile ${state.filterCard===c.name?'sel':''}" data-name="${esc(c.name)}">
+          <a class="ct-ext" href="${esc(c.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗</a>
+          <div class="ct-name">${esc(c.name)}</div>
+          <div class="ct-set">${esc(c.set)}</div>
+          <div class="ct-price-lbl">Market Price</div>
+          <div class="ct-price">${esc(c.market_price)}</div>
+        </div>`).join('')}
+    </div>` + exportRow();
+}
+
+// ── Sellers tab ────────────────────────────────────────────────────────────
+function renderSellers() {
+  let rows = state.sellers;
+  if (state.filterCard) rows = rows.filter(s => s.card_name === state.filterCard);
+
+  const header = `
+    <div class="sellers-toolbar">
+      <div class="sellers-for">
+        ${state.filterCard ? `Filtered to: <strong>${esc(state.filterCard)}</strong>` : `All ${rows.length} listing(s)`}
+        ${state.filterCard ? `<button class="clear-btn" onclick="state.filterCard=null;renderTabContent()">✕ clear</button>` : ''}
+      </div>
+      <div>${[...new Set(state.sellers.map(s=>s.card_name))].map(n =>
+        `<span class="chip ${state.filterCard===n?'active':''}" style="cursor:pointer" onclick="state.filterCard=state.filterCard===\`${n}\`?null:\`${n}\`;renderTabContent()">${esc(n)}</span>`
+      ).join('')}</div>
+    </div>`;
+
+  if (!rows.length) return header + `<div class="empty"><p>No listings.</p></div>`;
+
+  const tableRows = rows.map(s => `
     <tr>
       <td class="td-seller">${esc(s.seller)}</td>
       <td class="td-price">${esc(s.price)}</td>
-      <td class="td-condition"><span class="badge ${condClass(s.condition)}">${esc(s.condition)}</span></td>
-      <td class="td-ship">${esc(s.shipping)}</td>
-      <td>${esc(s.quantity)}</td>
+      <td class="td-card">${esc(s.card_name)}<br><span style="color:var(--muted2);font-size:10px">${esc(s.set)}</span></td>
+      <td><span class="cond-badge ${condClass(s.condition)}">${esc(s.condition)}</span></td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${esc(s.shipping)}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${esc(s.quantity)}</td>
       <td><a href="${esc(s.card_url)}" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:11px;color:var(--muted);text-decoration:none">↗</a></td>
     </tr>`).join('');
-  return `
+
+  return header + `
     <table>
-      <thead><tr>
-        <th>Seller</th><th>Price</th><th>Condition</th><th>Shipping</th><th>Qty</th><th></th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+      <thead><tr><th>Seller</th><th>Price</th><th>Card / Set</th><th>Condition</th><th>Shipping</th><th>Qty</th><th></th></tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>` + exportRow();
 }
 
-function condClass(c='') {
-  const v = c.toLowerCase();
-  if (v.includes('near') || v.includes('nm') || v.includes('mint')) return 'nm';
-  if (v.includes('lightly') || v.includes('lp')) return 'lp';
-  if (v.includes('moderate') || v.includes('mp')) return 'mp';
-  if (v.includes('heavy') || v.includes('hp') || v.includes('damage')) return 'hp';
-  return '';
+function exportRow() {
+  return `<div class="export-row">
+    <button class="exp-btn" onclick="exportCSV()">Export CSV</button>
+    <button class="exp-btn" onclick="exportJSON()">Export JSON</button>
+  </div>`;
 }
-
-function clearCardFilter() { state.selectedCard = null; render(); }
 
 // ── Export ─────────────────────────────────────────────────────────────────
 function exportCSV() {
-  if (!state.sellers.length && !state.cards.length) return;
   const rows = [
-    ['card_name','set','game','seller','price','condition','shipping','quantity','card_url'],
-    ...state.sellers.map(s => [s.card_name,s.set,s.game,s.seller,s.price,s.condition,s.shipping,s.quantity,s.card_url])
+    ['seller','total_price','card_name','set','edition','price','condition','shipping','quantity','card_url'],
+    ...state.sellers.map(s => [
+      s.seller,'',s.card_name,s.set,s.edition,s.price,s.condition,s.shipping,s.quantity,s.card_url
+    ]),
   ];
-  downloadText(rows.map(r => r.map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n'), 'tcgplayer_sellers.csv', 'text/csv');
+  dl(rows.map(r => r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n'), 'tcgplayer_sellers.csv', 'text/csv');
 }
-
 function exportJSON() {
-  downloadText(JSON.stringify({cards:state.cards,sellers:state.sellers},null,2), 'tcgplayer_data.json', 'application/json');
+  dl(JSON.stringify({cards:state.cards,sellers:state.sellers,combos:state.combos},null,2), 'tcgplayer_data.json','application/json');
 }
-
-function downloadText(text, name, mime) {
+function dl(text, name, mime) {
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([text], {type: mime}));
+  a.href = URL.createObjectURL(new Blob([text],{type:mime}));
   a.download = name; a.click();
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
+function condClass(c='') {
+  const v = c.toLowerCase();
+  if (v.includes('near')||v.includes('nm')||v.includes('mint')) return 'cond-nm';
+  if (v.includes('lightly')||v.includes('lp')) return 'cond-lp';
+  if (v.includes('moderate')||v.includes('mp')) return 'cond-mp';
+  if (v.includes('heavy')||v.includes('hp')||v.includes('damage')) return 'cond-hp';
+  return '';
+}
 function setStatus(msg, cls='') {
   const el = document.getElementById('status');
-  el.innerHTML = msg;
-  el.className = cls;
+  el.innerHTML = msg; el.className = cls;
 }
 function esc(s='') {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
-// ── Init ───────────────────────────────────────────────────────────────────
-render();
 </script>
 </body>
 </html>
