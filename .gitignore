@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*.json
+!package.json
+.env
+.DS_Store
+node_modules/
