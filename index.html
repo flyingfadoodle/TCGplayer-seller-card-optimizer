@@ -79,6 +79,25 @@
     .slot-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 4px; transition: color 0.15s; }
     .slot-remove:hover { color: var(--red); }
 
+    /* Autocomplete dropdown */
+    .ac-wrap { position: relative; flex: 1; }
+    .ac-dropdown {
+      position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 999;
+      background: var(--surface); border: 1px solid var(--border2); border-radius: 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5); overflow: hidden;
+      animation: up 0.12s ease both;
+    }
+    .ac-item {
+      padding: 9px 12px; cursor: pointer; font-size: 13px;
+      border-bottom: 1px solid var(--border); transition: background 0.1s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .ac-item:last-child { border-bottom: none; }
+    .ac-item:hover, .ac-item.focused { background: var(--surface2); }
+    .ac-item mark { background: none; color: var(--accent); font-weight: 700; }
+    .ac-loading { padding: 10px 12px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+    .ac-empty  { padding: 10px 12px; font-family: var(--mono); font-size: 11px; color: var(--muted2); }
+
     .slot-edition { width: 100%; }
     .slot-edition select, .slot-edition input {
       width: 100%; background: var(--bg); border: 1px solid var(--border2); color: var(--text);
@@ -458,10 +477,18 @@ function renderSlots() {
   const sets = state.game === 'mtg' ? MTG_SETS : POKEMON_SETS;
   const container = document.getElementById('cardSlots');
   container.innerHTML = state.slots.map((slot, i) => `
-    <div class="card-slot">
+    <div class="card-slot" id="slot-${i}">
       <div class="slot-row">
-        <input class="slot-name" type="text" placeholder="Card name…" value="${esc(slot.name)}"
-          oninput="state.slots[${i}].name = this.value" />
+        <div class="ac-wrap">
+          <input class="slot-name" type="text" placeholder="Card name…" value="${esc(slot.name)}"
+            autocomplete="off"
+            oninput="onSlotInput(${i}, this.value)"
+            onkeydown="onSlotKey(event, ${i})"
+            onblur="scheduleCloseAC(${i})"
+            onfocus="if(this.value.length>=2) onSlotInput(${i}, this.value)"
+          />
+          <div class="ac-dropdown" id="ac-${i}" style="display:none"></div>
+        </div>
         ${state.slots.length > 1 ? `<button class="slot-remove" onclick="removeSlot(${i})">×</button>` : ''}
       </div>
       <div class="slot-edition">
@@ -484,6 +511,121 @@ function renderSlots() {
 function toggleCustom(i) {
   state.slots[i].useCustom = !state.slots[i].useCustom;
   renderSlots();
+}
+
+// ── Autocomplete ───────────────────────────────────────────────────────────
+const acTimers   = {};   // debounce per slot
+const acFocused  = {};   // keyboard-focused index per slot
+const acResults  = {};   // cached results per slot
+
+async function onSlotInput(i, val) {
+  state.slots[i].name = val;
+  const drop = document.getElementById(`ac-${i}`);
+  if (!drop) return;
+
+  if (val.length < 2) { drop.style.display = 'none'; return; }
+
+  clearTimeout(acTimers[i]);
+  acTimers[i] = setTimeout(() => fetchAC(i, val), 280);
+}
+
+async function fetchAC(i, query) {
+  const drop = document.getElementById(`ac-${i}`);
+  if (!drop) return;
+
+  drop.innerHTML = `<div class="ac-loading"><span class="spin"></span>Searching…</div>`;
+  drop.style.display = 'block';
+
+  try {
+    let names = [];
+    if (state.game === 'mtg') {
+      // Scryfall autocomplete — free, no key, CORS-friendly
+      const r = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(query)}&include_extras=false`);
+      const d = await r.json();
+      names = d.data || [];
+    } else {
+      // PokéTCG API — free, no key needed for basic search
+      const r = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${encodeURIComponent(query)}*"&select=name&pageSize=20`);
+      const d = await r.json();
+      // Deduplicate card names
+      const seen = new Set();
+      names = (d.data || []).map(c => c.name).filter(n => { if (seen.has(n)) return false; seen.add(n); return true; });
+    }
+
+    acResults[i] = names;
+    acFocused[i] = -1;
+    renderACDropdown(i, query, names);
+  } catch (e) {
+    drop.innerHTML = `<div class="ac-empty">Could not load suggestions</div>`;
+  }
+}
+
+function renderACDropdown(i, query, names) {
+  const drop = document.getElementById(`ac-${i}`);
+  if (!drop) return;
+
+  if (!names.length) {
+    drop.innerHTML = `<div class="ac-empty">No matches found</div>`;
+    drop.style.display = 'block';
+    return;
+  }
+
+  drop.innerHTML = names.slice(0, 12).map((name, idx) => {
+    const highlighted = name.replace(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark>$1</mark>');
+    return `<div class="ac-item" data-idx="${idx}" data-name="${esc(name)}"
+      onmousedown="selectAC(${i}, '${esc(name)}')"
+      onmouseover="setACFocus(${i}, ${idx})"
+    >${highlighted}</div>`;
+  }).join('');
+  drop.style.display = 'block';
+}
+
+function selectAC(i, name) {
+  state.slots[i].name = name;
+  const inp = document.querySelector(`#slot-${i} .slot-name`);
+  if (inp) inp.value = name;
+  closeAC(i);
+}
+
+function setACFocus(i, idx) {
+  acFocused[i] = idx;
+  document.querySelectorAll(`#ac-${i} .ac-item`).forEach((el, j) => {
+    el.classList.toggle('focused', j === idx);
+  });
+}
+
+function onSlotKey(e, i) {
+  const drop = document.getElementById(`ac-${i}`);
+  const items = acResults[i] || [];
+  const visible = drop && drop.style.display !== 'none';
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (!visible) return;
+    acFocused[i] = Math.min((acFocused[i] ?? -1) + 1, Math.min(items.length, 12) - 1);
+    setACFocus(i, acFocused[i]);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acFocused[i] = Math.max((acFocused[i] ?? 0) - 1, 0);
+    setACFocus(i, acFocused[i]);
+  } else if (e.key === 'Enter') {
+    if (visible && acFocused[i] >= 0 && items[acFocused[i]]) {
+      e.preventDefault();
+      selectAC(i, items[acFocused[i]]);
+    }
+  } else if (e.key === 'Escape') {
+    closeAC(i);
+  }
+}
+
+function closeAC(i) {
+  const drop = document.getElementById(`ac-${i}`);
+  if (drop) drop.style.display = 'none';
+}
+
+function scheduleCloseAC(i) {
+  // Small delay so mousedown on item fires first
+  setTimeout(() => closeAC(i), 180);
 }
 
 // ── Search ─────────────────────────────────────────────────────────────────
