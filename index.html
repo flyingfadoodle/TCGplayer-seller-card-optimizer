@@ -217,6 +217,27 @@
     .notice strong { color: var(--text); }
     .notice code { background: var(--surface2); padding: 1px 5px; border-radius: 3px; color: var(--accent2); font-size: 10px; }
 
+    /* Setup checker */
+    .setup-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 20px; animation: up 0.5s 0.05s ease both; }
+    .setup-title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .setup-title span { color: var(--text); }
+    .setup-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+    .setup-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .setup-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+    .setup-info { flex: 1; }
+    .setup-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .setup-desc { font-family: var(--mono); font-size: 10px; color: var(--muted); line-height: 1.6; }
+    .setup-desc code { background: var(--surface2); padding: 1px 6px; border-radius: 3px; color: var(--accent2); }
+    .setup-desc a { color: var(--accent2); text-decoration: none; }
+    .setup-desc a:hover { text-decoration: underline; }
+    .setup-status { font-family: var(--mono); font-size: 10px; flex-shrink: 0; margin-top: 2px; }
+    .status-ok      { color: var(--green); }
+    .status-missing { color: var(--red); }
+    .status-unknown { color: var(--muted); }
+    .setup-all-good { text-align: center; padding: 10px 0 2px; font-family: var(--mono); font-size: 12px; color: var(--green); }
+    .collapse-btn { font-family: var(--mono); font-size: 10px; background: none; border: none; color: var(--muted); cursor: pointer; padding: 0; }
+    .collapse-btn:hover { color: var(--text); }
+
     @keyframes up     { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform:none; } }
     @keyframes rotate { to { transform: rotate(360deg); } }
   </style>
@@ -264,6 +285,15 @@
     <!-- ── Main ── -->
     <main class="main">
 
+      <!-- Setup checker -->
+      <div class="setup-box" id="setupBox">
+        <div class="setup-title">
+          <span>Setup Checklist</span>
+          <button class="collapse-btn" id="collapseSetup">hide ↑</button>
+        </div>
+        <div id="setupRows"></div>
+      </div>
+
       <div class="notice" id="helpNotice">
         <strong>How it works:</strong><br>
         1. Add one or more cards + pick their <strong>edition/set</strong> from the dropdown (or type a custom version).<br>
@@ -303,7 +333,102 @@ let state = {
   filterCard: null,
 };
 
+// ── Setup checker ──────────────────────────────────────────────────────────
+const SETUP_ITEMS = [
+  {
+    id: 'python',
+    name: 'Python 3.8+',
+    desc: 'Required to run the scraper.',
+    fix: 'Download from <a href="https://www.python.org/downloads/" target="_blank">python.org/downloads</a>',
+    detect: () => false, // browser can't check — show as manual
+  },
+  {
+    id: 'playwright',
+    name: 'Playwright library',
+    desc: 'Python package for browser automation.',
+    fix: 'Run in your terminal: <code>pip install playwright</code>',
+  },
+  {
+    id: 'chromium',
+    name: 'Playwright Chromium browser',
+    desc: 'Headless browser used to scrape TCGPlayer (JS-rendered).',
+    fix: 'Run in your terminal: <code>playwright install chromium</code>',
+  },
+  {
+    id: 'scraper',
+    name: 'scraper.py',
+    desc: 'The scraper script — should be in the same folder as index.html.',
+    fix: 'Clone the repo: <code>git clone https://github.com/flyingfadoodle/TCGplayer-seller-card-optimizer</code>',
+  },
+];
+
+// We can't truly detect installs from the browser — but we track what the
+// user confirms and persist it in localStorage so the checklist stays useful.
+function loadSetupState() {
+  try { return JSON.parse(localStorage.getItem('tcg_setup') || '{}'); } catch { return {}; }
+}
+function saveSetupState(s) {
+  try { localStorage.setItem('tcg_setup', JSON.stringify(s)); } catch {}
+}
+
+function renderSetup() {
+  const saved = loadSetupState();
+  const allDone = SETUP_ITEMS.every(item => saved[item.id]);
+
+  const rows = SETUP_ITEMS.map(item => {
+    const done = !!saved[item.id];
+    return `
+      <div class="setup-row">
+        <div class="setup-icon">${done ? '✅' : '❌'}</div>
+        <div class="setup-info">
+          <div class="setup-name">${item.name}</div>
+          <div class="setup-desc">
+            ${item.desc}<br>
+            ${done ? '<span style="color:var(--green)">Marked as installed</span>' : `<strong style="color:var(--text)">How to fix:</strong> ${item.fix}`}
+          </div>
+        </div>
+        <div class="setup-status">
+          <button onclick="toggleSetupItem('${item.id}')" style="
+            font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:4px;cursor:pointer;
+            background:${done ? 'var(--surface2)' : 'var(--accent)'};
+            border:1px solid ${done ? 'var(--border2)' : 'var(--accent)'};
+            color:${done ? 'var(--muted)' : '#0a0a0c'};
+            transition:all 0.15s;
+          ">${done ? 'undo' : 'mark done'}</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('setupRows').innerHTML = rows +
+    (allDone ? `<div class="setup-all-good">🎉 All set — you're ready to scrape!</div>` : '');
+
+  // Auto-collapse if all done
+  const box = document.getElementById('setupBox');
+  if (allDone && !box.dataset.manualExpand) collapseSetup(true);
+}
+
+function toggleSetupItem(id) {
+  const s = loadSetupState();
+  s[id] = !s[id];
+  saveSetupState(s);
+  renderSetup();
+}
+
+let setupCollapsed = false;
+function collapseSetup(auto = false) {
+  const box   = document.getElementById('setupBox');
+  const rows  = document.getElementById('setupRows');
+  const btn   = document.getElementById('collapseSetup');
+  if (!auto) box.dataset.manualExpand = '1';
+  setupCollapsed = !setupCollapsed;
+  rows.style.display = setupCollapsed ? 'none' : '';
+  btn.textContent = setupCollapsed ? 'show ↓' : 'hide ↑';
+}
+
+document.getElementById('collapseSetup').addEventListener('click', () => collapseSetup());
+
 // ── Init ───────────────────────────────────────────────────────────────────
+renderSetup();
 addSlot(); addSlot();
 renderSlots();
 renderTabContent();
