@@ -19,6 +19,7 @@ Usage:
 
 import argparse
 import json
+import re
 import sys
 import time
 from pathlib import Path
@@ -230,22 +231,33 @@ class TCGPlayerScraper:
                 if seller == "N/A" and price == "N/A":
                     continue
 
-                # Parse price to float for sorting
-                price_float = _parse_price(price)
+                # Parse price and shipping into structured fields
+                price_float    = _parse_price(price)
+                shipping_info  = _parse_shipping(shipping, price_float)
+
+                # Total landed cost = card price + shipping cost
+                landed = price_float + shipping_info["shipping_cost"]
 
                 sellers.append({
-                    "card_name":    card["name"],
-                    "set":          card["set"],
-                    "edition":      card["edition"],
-                    "game":         card["game"],
-                    "search_key":   card["search_key"],
-                    "seller":       seller,
-                    "price":        price,
-                    "price_float":  price_float,
-                    "condition":    condition,
-                    "shipping":     shipping,
-                    "quantity":     qty,
-                    "card_url":     card["url"],
+                    "card_name":            card["name"],
+                    "set":                  card["set"],
+                    "edition":              card["edition"],
+                    "game":                 card["game"],
+                    "search_key":           card["search_key"],
+                    "seller":               seller,
+                    "price":                price,
+                    "price_float":          price_float,
+                    "condition":            condition,
+                    "shipping_raw":         shipping,
+                    "shipping_display":     shipping_info["display"],
+                    "shipping_cost":        shipping_info["shipping_cost"],
+                    "shipping_free":        shipping_info["free"],
+                    "shipping_free_threshold": shipping_info["free_threshold"],
+                    "shipping_qualifies":   shipping_info["qualifies"],
+                    "landed_cost":          landed,
+                    "landed_display":       f"${landed:.2f}" if landed > 0 else "N/A",
+                    "quantity":             qty,
+                    "card_url":             card["url"],
                 })
             except Exception as e:
                 print(f"        ⚠️   Row error: {e}")
@@ -274,38 +286,52 @@ class TCGPlayerScraper:
 def find_seller_combos(sellers: list[dict], search_keys: list[str]) -> list[dict]:
     """
     Find sellers who appear in listings for ALL requested search_keys.
-    Returns ranked list of (seller, cards, total_price).
+    Ranked by cheapest total landed cost (price + shipping) first.
     """
     if not sellers or not search_keys:
         return []
 
-    # Group by seller
+    # Group by seller — keep cheapest landed listing per card per seller
     by_seller: dict[str, dict] = {}
     for s in sellers:
         name = s["seller"]
         if name not in by_seller:
             by_seller[name] = {}
         key = s["search_key"]
-        # Keep cheapest listing per card per seller
-        if key not in by_seller[name] or s["price_float"] < by_seller[name][key]["price_float"]:
+        if key not in by_seller[name] or s["landed_cost"] < by_seller[name][key]["landed_cost"]:
             by_seller[name][key] = s
 
     combos = []
     for seller, cards_by_key in by_seller.items():
-        # Only include sellers who have ALL requested cards
         if all(k in cards_by_key for k in search_keys):
             listings = [cards_by_key[k] for k in search_keys]
-            total = sum(c["price_float"] for c in listings if c["price_float"] > 0)
+
+            total_price    = sum(c["price_float"]   for c in listings if c["price_float"]   > 0)
+            total_shipping = sum(c["shipping_cost"]  for c in listings if c["shipping_cost"] >= 0)
+            total_landed   = sum(c["landed_cost"]    for c in listings if c["landed_cost"]   > 0)
+
+            # Shipping summary for the bundle
+            all_free      = all(c["shipping_free"] for c in listings)
+            any_free      = any(c["shipping_free"] for c in listings)
+            any_qualifies = any(c["shipping_qualifies"] for c in listings)
+
             combos.append({
-                "seller":       seller,
-                "listings":     listings,
-                "total_price":  total,
-                "total_display": f"${total:.2f}" if total > 0 else "N/A",
-                "cards_count":  len(listings),
+                "seller":           seller,
+                "listings":         listings,
+                "total_price":      total_price,
+                "total_shipping":   total_shipping,
+                "total_landed":     total_landed,
+                "total_price_display":   f"${total_price:.2f}"  if total_price  > 0 else "N/A",
+                "total_shipping_display": f"${total_shipping:.2f}" if total_shipping >= 0 else "N/A",
+                "total_landed_display":  f"${total_landed:.2f}" if total_landed  > 0 else "N/A",
+                "all_free_shipping":  all_free,
+                "any_free_shipping":  any_free,
+                "shipping_qualifies": any_qualifies,
+                "cards_count":        len(listings),
             })
 
-    # Sort cheapest bundle first
-    combos.sort(key=lambda c: (c["total_price"] == 0, c["total_price"]))
+    # Sort cheapest landed cost first
+    combos.sort(key=lambda c: (c["total_landed"] == 0, c["total_landed"]))
     return combos
 
 
@@ -314,6 +340,81 @@ def _parse_price(price_str: str) -> float:
         return float(price_str.replace("$", "").replace(",", "").strip())
     except Exception:
         return 0.0
+
+
+def _parse_shipping(shipping_str: str, item_price: float) -> dict:
+    """
+    Parse TCGPlayer shipping text into structured fields.
+
+    Handles patterns like:
+      "Free Shipping"
+      "Free"
+      "$0.00 Shipping"
+      "+ $0.99 Shipping"
+      "Free Shipping on Orders Over $5.00"
+      "Free over $5"
+      "Free on orders $5+"
+      "+ $1.49"
+      "N/A"
+      (empty)
+
+    Returns:
+      free            — True if shipping is unconditionally free
+      free_threshold  — dollar amount needed for free shipping (0 if always free, None if unknown)
+      qualifies       — True if item_price meets the threshold for free shipping
+      shipping_cost   — estimated shipping cost in dollars (0 if free, -1 if unknown)
+      display         — clean human-readable string
+    """
+    raw = shipping_str.strip() if shipping_str else ""
+    low = raw.lower()
+
+    result = {
+        "free":            False,
+        "free_threshold":  None,
+        "qualifies":       False,
+        "shipping_cost":   -1.0,   # -1 = unknown
+        "display":         raw or "N/A",
+    }
+
+    if not raw or raw == "N/A":
+        return result
+
+    # ── Unconditionally free ──────────────────────────────────────────────
+    if re.search(r'\bfree\b', low) and not re.search(r'over|above|order|minimum|\$\s*\d', low):
+        result.update(free=True, free_threshold=0.0, qualifies=True,
+                      shipping_cost=0.0, display="Free Shipping")
+        return result
+
+    # ── Free over $X ─────────────────────────────────────────────────────
+    threshold_match = re.search(r'free\b.*?\$\s*([\d,]+\.?\d*)', low)
+    if threshold_match:
+        threshold = float(threshold_match.group(1).replace(",", ""))
+        qualifies = item_price >= threshold
+        result.update(
+            free=False,
+            free_threshold=threshold,
+            qualifies=qualifies,
+            shipping_cost=0.0 if qualifies else -1.0,
+            display=f"Free over ${threshold:.2f}" + (" ✓" if qualifies else f" (need ${threshold - item_price:.2f} more)"),
+        )
+        return result
+
+    # ── $0.00 shipping (free but not labeled) ────────────────────────────
+    zero_match = re.search(r'\$\s*0\.00', low)
+    if zero_match:
+        result.update(free=True, free_threshold=0.0, qualifies=True,
+                      shipping_cost=0.0, display="Free Shipping ($0.00)")
+        return result
+
+    # ── Paid shipping: + $X.XX ───────────────────────────────────────────
+    cost_match = re.search(r'\$\s*([\d,]+\.?\d*)', raw)
+    if cost_match:
+        cost = float(cost_match.group(1).replace(",", ""))
+        result.update(shipping_cost=cost, display=f"+${cost:.2f} Shipping")
+        return result
+
+    # Fallback — keep raw text
+    return result
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────

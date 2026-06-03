@@ -205,6 +205,7 @@
     tbody tr:hover { background: var(--surface2); }
     tbody td { padding: 10px 12px; vertical-align: middle; }
     .td-price { font-family: var(--mono); font-weight: 500; color: var(--green); }
+    .td-landed { font-family: var(--mono); font-size: 11px; color: var(--muted); }
     .td-seller { font-weight: 600; font-size: 13px; }
     .td-card { color: var(--muted); font-size: 11px; }
     .cond-badge {
@@ -215,6 +216,23 @@
     .cond-lp { background: #1a2710; color: #86efac; }
     .cond-mp { background: #271f0a; color: var(--orange); }
     .cond-hp { background: #270d0d; color: var(--red); }
+
+    /* Shipping badges */
+    .ship-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 4px; font-family: var(--mono); font-size: 10px; }
+    .ship-free     { background: #0e2218; color: var(--green); }
+    .ship-qualifies { background: #0e1e2a; color: var(--accent2); }
+    .ship-paid     { background: var(--surface2); color: var(--muted); }
+    .ship-unknown  { background: var(--surface2); color: var(--muted2); }
+
+    /* Free shipping filter toggle */
+    .filter-toggle { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; color: var(--muted); cursor: pointer; user-select: none; }
+    .filter-toggle input[type=checkbox] { accent-color: var(--accent2); width: 13px; height: 13px; cursor: pointer; }
+    .filter-toggle:hover { color: var(--text); }
+
+    /* Combo shipping summary */
+    .combo-ship-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .combo-breakdown { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+    .combo-breakdown strong { color: var(--text); }
 
     /* Export */
     .export-row { display: flex; gap: 8px; margin-top: 20px; }
@@ -342,7 +360,7 @@ const POKEMON_SETS = ["Base Set","Base Set Shadowless","Base Set 1st Edition","J
 // ── State ──────────────────────────────────────────────────────────────────
 let state = {
   game: 'pokemon',
-  slots: [],           // [{name, edition, customEdition, useCustom}]
+  slots: [],
   cards: [],
   sellers: [],
   combos: [],
@@ -350,6 +368,7 @@ let state = {
   activeTab: 'bundles',
   filterSeller: null,
   filterCard: null,
+  filterFreeShip: false,
 };
 
 // ── Setup checker ──────────────────────────────────────────────────────────
@@ -723,28 +742,63 @@ function renderBundles() {
   if (!state.combos.length) {
     return `<div class="empty"><div class="empty-icon">🔍</div><p>No sellers found carrying <strong>all</strong> requested cards.<br>Try broadening the edition filter or adding more sellers via the scraper.</p></div>`;
   }
-  return state.combos.map((c, idx) => `
+
+  const filtered = state.filterFreeShip
+    ? state.combos.filter(c => c.all_free_shipping || c.any_free_shipping || c.shipping_qualifies)
+    : state.combos;
+
+  const filterBar = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${filtered.length} bundle${filtered.length!==1?'s':''} · ranked by total landed cost</div>
+      <label class="filter-toggle">
+        <input type="checkbox" ${state.filterFreeShip?'checked':''} onchange="state.filterFreeShip=this.checked;renderTabContent()">
+        Free / qualifies-for-free shipping only
+      </label>
+    </div>`;
+
+  if (!filtered.length) return filterBar + `<div class="empty"><p>No bundles with free shipping found.<br>Uncheck the filter to see all results.</p></div>`;
+
+  return filterBar + filtered.map((c, idx) => {
+    const shipBadge = c.all_free_shipping
+      ? `<span class="ship-badge ship-free">🚚 All Free Shipping</span>`
+      : c.any_free_shipping
+        ? `<span class="ship-badge ship-qualifies">🚚 Some Free Shipping</span>`
+        : c.shipping_qualifies
+          ? `<span class="ship-badge ship-qualifies">🚚 Qualifies for Free</span>`
+          : '';
+
+    const landedDiff = c.total_landed !== c.total_price
+      ? `<span class="combo-breakdown"> + <strong>${c.total_shipping >= 0 ? '$'+c.total_shipping.toFixed(2) : '?'}</strong> shipping = <strong>${esc(c.total_landed_display)}</strong> landed</span>`
+      : '';
+
+    return `
     <div class="combo-card ${idx===0?'top':''}">
       <div class="combo-header">
         <div>
           <span class="combo-rank">#${idx+1}</span>
           <span class="combo-seller">${esc(c.seller)}</span>
         </div>
-        <div>
+        <div style="text-align:right">
           <span style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-right:12px">${c.cards_count} card${c.cards_count>1?'s':''}</span>
-          <span class="combo-total">${esc(c.total_display)}</span>
+          <span class="combo-total">${esc(c.total_price_display)}</span>
         </div>
       </div>
-      <div class="combo-listings">
+      <div class="combo-ship-row">
+        ${shipBadge}
+        ${landedDiff}
+      </div>
+      <div class="combo-listings" style="margin-top:10px">
         ${c.listings.map(l => `
           <a class="combo-listing-item" href="${esc(l.card_url)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block">
             <div class="cli-name">${esc(l.card_name)}</div>
             <div class="cli-set">${esc(l.set || l.edition)}</div>
             <div class="cli-price">${esc(l.price)}</div>
             <div class="cli-cond">${esc(l.condition)}</div>
+            <div style="margin-top:4px">${shipBadgeFor(l)}</div>
           </a>`).join('')}
       </div>
-    </div>`).join('') + exportRow();
+    </div>`;
+  }).join('') + exportRow();
 }
 
 // ── Cards tab ──────────────────────────────────────────────────────────────
@@ -767,7 +821,8 @@ function renderCards() {
 // ── Sellers tab ────────────────────────────────────────────────────────────
 function renderSellers() {
   let rows = state.sellers;
-  if (state.filterCard) rows = rows.filter(s => s.card_name === state.filterCard);
+  if (state.filterCard)     rows = rows.filter(s => s.card_name === state.filterCard);
+  if (state.filterFreeShip) rows = rows.filter(s => s.shipping_free || s.shipping_qualifies);
 
   const header = `
     <div class="sellers-toolbar">
@@ -775,29 +830,54 @@ function renderSellers() {
         ${state.filterCard ? `Filtered to: <strong>${esc(state.filterCard)}</strong>` : `All ${rows.length} listing(s)`}
         ${state.filterCard ? `<button class="clear-btn" onclick="state.filterCard=null;renderTabContent()">✕ clear</button>` : ''}
       </div>
-      <div>${[...new Set(state.sellers.map(s=>s.card_name))].map(n =>
-        `<span class="chip ${state.filterCard===n?'active':''}" style="cursor:pointer" onclick="state.filterCard=state.filterCard===\`${n}\`?null:\`${n}\`;renderTabContent()">${esc(n)}</span>`
-      ).join('')}</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <label class="filter-toggle">
+          <input type="checkbox" ${state.filterFreeShip?'checked':''} onchange="state.filterFreeShip=this.checked;renderTabContent()">
+          Free shipping only
+        </label>
+        <div>${[...new Set(state.sellers.map(s=>s.card_name))].map(n =>
+          `<span class="chip ${state.filterCard===n?'active':''}" style="cursor:pointer" onclick="state.filterCard=state.filterCard===\`${n}\`?null:\`${n}\`;renderTabContent()">${esc(n)}</span>`
+        ).join('')}</div>
+      </div>
     </div>`;
 
-  if (!rows.length) return header + `<div class="empty"><p>No listings.</p></div>`;
+  if (!rows.length) return header + `<div class="empty"><p>No listings match the current filters.</p></div>`;
 
   const tableRows = rows.map(s => `
     <tr>
       <td class="td-seller">${esc(s.seller)}</td>
-      <td class="td-price">${esc(s.price)}</td>
+      <td class="td-price">
+        ${esc(s.price)}
+        ${s.landed_cost && s.landed_cost !== s.price_float
+          ? `<div class="td-landed">${esc(s.landed_display)} landed</div>`
+          : ''}
+      </td>
       <td class="td-card">${esc(s.card_name)}<br><span style="color:var(--muted2);font-size:10px">${esc(s.set)}</span></td>
       <td><span class="cond-badge ${condClass(s.condition)}">${esc(s.condition)}</span></td>
-      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${esc(s.shipping)}</td>
+      <td>${shipBadgeFor(s)}</td>
       <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${esc(s.quantity)}</td>
       <td><a href="${esc(s.card_url)}" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:11px;color:var(--muted);text-decoration:none">↗</a></td>
     </tr>`).join('');
 
   return header + `
     <table>
-      <thead><tr><th>Seller</th><th>Price</th><th>Card / Set</th><th>Condition</th><th>Shipping</th><th>Qty</th><th></th></tr></thead>
+      <thead><tr><th>Seller</th><th>Price / Landed</th><th>Card / Set</th><th>Condition</th><th>Shipping</th><th>Qty</th><th></th></tr></thead>
       <tbody>${tableRows}</tbody>
     </table>` + exportRow();
+}
+
+function shipBadgeFor(s) {
+  // Handle both old format (shipping string) and new structured format
+  if (s.shipping_free)       return `<span class="ship-badge ship-free">Free</span>`;
+  if (s.shipping_qualifies)  return `<span class="ship-badge ship-qualifies">Free ✓</span>`;
+  if (s.shipping_free_threshold > 0) {
+    const need = (s.shipping_free_threshold - s.price_float).toFixed(2);
+    return `<span class="ship-badge ship-paid">Free over $${s.shipping_free_threshold.toFixed(2)}</span>`;
+  }
+  if (s.shipping_cost > 0)   return `<span class="ship-badge ship-paid">+$${s.shipping_cost.toFixed(2)}</span>`;
+  if (s.shipping_raw && s.shipping_raw !== 'N/A') return `<span class="ship-badge ship-unknown">${esc(s.shipping_raw)}</span>`;
+  if (s.shipping && s.shipping !== 'N/A')         return `<span class="ship-badge ship-unknown">${esc(s.shipping)}</span>`;
+  return `<span class="ship-badge ship-unknown">—</span>`;
 }
 
 function exportRow() {
