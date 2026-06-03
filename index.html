@@ -588,76 +588,135 @@ function toggleCustom(i) {
 }
 
 // ── Autocomplete ───────────────────────────────────────────────────────────
-const acTimers   = {};   // debounce per slot
-const acFocused  = {};   // keyboard-focused index per slot
-const acResults  = {};   // cached results per slot
+const acTimers   = {};
+const acFocused  = {};
+const acResults  = {};   // [{name, set, printing, fullName}]
+
+// TCGCSV category IDs (mirrors TCGPlayer)
+const TCGCSV_CAT = { mtg: 1, pokemon: 3 };
 
 async function onSlotInput(i, val) {
   state.slots[i].name = val;
   const drop = document.getElementById(`ac-${i}`);
   if (!drop) return;
-
   if (val.length < 2) { drop.style.display = 'none'; return; }
-
   clearTimeout(acTimers[i]);
-  acTimers[i] = setTimeout(() => fetchAC(i, val), 280);
+  acTimers[i] = setTimeout(() => fetchAC(i, val), 320);
 }
 
 async function fetchAC(i, query) {
   const drop = document.getElementById(`ac-${i}`);
   if (!drop) return;
 
-  drop.innerHTML = `<div class="ac-loading"><span class="spin"></span>Searching…</div>`;
+  drop.innerHTML = `<div class="ac-loading"><span class="spin"></span>Searching TCGPlayer…</div>`;
   drop.style.display = 'block';
 
+  const catId = TCGCSV_CAT[state.game] || 1;
+  const q = query.toLowerCase();
+
   try {
-    let names = [];
-    if (state.game === 'mtg') {
-      // Scryfall autocomplete — free, no key, CORS-friendly
-      const r = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(query)}&include_extras=false`);
+    // TCGCSV: search products by name across all groups for this category
+    // Use the /tcgplayer/{catId}/products endpoint — returns full product names
+    // including printing variants e.g. "Black Lotus (Extended Art)"
+    const r = await fetch(
+      `https://tcgcsv.com/tcgplayer/${catId}/products?productName=${encodeURIComponent(query)}`,
+      { headers: { 'Accept': 'application/json' } }
+    );
+
+    let results = [];
+
+    if (r.ok) {
       const d = await r.json();
-      names = d.data || [];
-    } else {
-      // PokéTCG API — free, no key needed for basic search
-      const r = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${encodeURIComponent(query)}*"&select=name&pageSize=20`);
-      const d = await r.json();
-      // Deduplicate card names
-      const seen = new Set();
-      names = (d.data || []).map(c => c.name).filter(n => { if (seen.has(n)) return false; seen.add(n); return true; });
+      const products = d.results || d || [];
+      // Each product has: name, groupName (set name), url
+      results = products
+        .filter(p => p.name && p.name.toLowerCase().includes(q))
+        .slice(0, 15)
+        .map(p => ({
+          fullName: p.name,                          // e.g. "Hylda of the Icy Crown (Extended Art)"
+          baseName: p.name.replace(/\s*\(.*?\)\s*$/, '').trim(), // strip "(Extended Art)" for scraper
+          set:      p.groupName || '',
+          printing: extractPrinting(p.name),
+          url:      p.url || '',
+        }));
     }
 
-    acResults[i] = names;
+    // Fallback: Scryfall for MTG, PokémonTCG for Pokemon (name-only, no variant detail)
+    if (!results.length) {
+      if (state.game === 'mtg') {
+        const r2 = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(query)}&include_extras=true`);
+        const d2 = await r2.json();
+        results = (d2.data || []).map(n => ({ fullName: n, baseName: n, set: '', printing: '' }));
+      } else {
+        const r2 = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${encodeURIComponent(query)}*"&select=name,set&pageSize=20`);
+        const d2 = await r2.json();
+        const seen = new Set();
+        results = (d2.data || [])
+          .filter(c => { const k = c.name; if (seen.has(k)) return false; seen.add(k); return true; })
+          .map(c => ({ fullName: c.name, baseName: c.name, set: c.set?.name || '', printing: '' }));
+      }
+    }
+
+    acResults[i] = results;
     acFocused[i] = -1;
-    renderACDropdown(i, query, names);
+    renderACDropdown(i, query, results);
   } catch (e) {
     drop.innerHTML = `<div class="ac-empty">Could not load suggestions</div>`;
   }
 }
 
-function renderACDropdown(i, query, names) {
+function extractPrinting(name) {
+  const m = name.match(/\(([^)]+)\)\s*$/);
+  if (!m) return '';
+  const tag = m[1];
+  // Only treat as a printing type if it's not a set name / number
+  const PRINTING_KEYWORDS = ['extended art','borderless','showcase','foil','etched','gilded',
+    'textured','surge','galaxy','halo','confetti','ripple','serialized','retro','phyrexian',
+    'full art','alternate art','illustration rare','hyper rare','rainbow','gold secret',
+    'secret rare','special illustration','reverse holo','holofoil','1st edition','shadowless',
+    'prerelease','staff','german','japanese','french','spanish','korean','portuguese'];
+  return PRINTING_KEYWORDS.some(k => tag.toLowerCase().includes(k)) ? tag : '';
+}
+
+function renderACDropdown(i, query, results) {
   const drop = document.getElementById(`ac-${i}`);
   if (!drop) return;
 
-  if (!names.length) {
+  if (!results.length) {
     drop.innerHTML = `<div class="ac-empty">No matches found</div>`;
     drop.style.display = 'block';
     return;
   }
 
-  drop.innerHTML = names.slice(0, 12).map((name, idx) => {
-    const highlighted = name.replace(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark>$1</mark>');
-    return `<div class="ac-item" data-idx="${idx}" data-name="${esc(name)}"
-      onmousedown="selectAC(${i}, '${esc(name)}')"
+  const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+
+  drop.innerHTML = results.slice(0, 12).map((r, idx) => {
+    const highlighted = r.fullName.replace(re, '<mark>$1</mark>');
+    const sub = [r.set, r.printing ? `<span style="color:var(--accent3)">${esc(r.printing)}</span>` : ''].filter(Boolean).join(' · ');
+    return `<div class="ac-item" data-idx="${idx}"
+      onmousedown="selectAC(${i}, ${idx})"
       onmouseover="setACFocus(${i}, ${idx})"
-    >${highlighted}</div>`;
+    >
+      <div>${highlighted}</div>
+      ${sub ? `<div style="font-size:10px;color:var(--muted);margin-top:2px;font-family:var(--mono)">${sub}</div>` : ''}
+    </div>`;
   }).join('');
   drop.style.display = 'block';
 }
 
-function selectAC(i, name) {
-  state.slots[i].name = name;
+function selectAC(i, idx) {
+  const r = (acResults[i] || [])[idx];
+  if (!r) return;
+  // Put the base card name in the input (without printing variant in parens)
+  state.slots[i].name = r.baseName;
+  // Auto-fill set if not already chosen and set is known
+  if (!state.slots[i].set && r.set) {
+    const sets = state.game === 'mtg' ? MTG_SETS : POKEMON_SETS;
+    if (sets.includes(r.set)) state.slots[i].set = r.set;
+  }
   const inp = document.querySelector(`#slot-${i} .slot-name`);
-  if (inp) inp.value = name;
+  if (inp) inp.value = r.baseName;
+  renderSlots(); // re-render to reflect auto-filled set
   closeAC(i);
 }
 
@@ -685,7 +744,7 @@ function onSlotKey(e, i) {
   } else if (e.key === 'Enter') {
     if (visible && acFocused[i] >= 0 && items[acFocused[i]]) {
       e.preventDefault();
-      selectAC(i, items[acFocused[i]]);
+      selectAC(i, acFocused[i]);
     }
   } else if (e.key === 'Escape') {
     closeAC(i);
