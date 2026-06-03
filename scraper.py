@@ -34,6 +34,21 @@ except ImportError:
 
 # ── Edition / version data ────────────────────────────────────────────────────
 
+MTG_PRINTING_TYPES = [
+    "Extended Art", "Borderless", "Showcase", "Etched Foil", "Foil", "Non-Foil",
+    "Retro Frame", "Gilded Foil", "Textured Foil", "Surge Foil",
+    "Step-and-Compleat Foil", "Phyrexian Language", "Galaxy Foil", "Halo Foil",
+    "Oil Slick Raised Foil", "Serialized", "Double Rainbow Foil",
+    "Confetti Foil", "Ripple Foil",
+]
+
+POKEMON_PRINTING_TYPES = [
+    "Full Art", "Secret Rare", "Rainbow Rare", "Gold Secret Rare", "Alternate Art",
+    "Special Illustration Rare", "Hyper Rare", "Illustration Rare",
+    "Holofoil", "Reverse Holofoil", "Non-Holo", "1st Edition", "Shadowless",
+    "Prerelease Stamp", "Staff Stamp", "Pokemon Center Exclusive",
+]
+
 MTG_SETS = [
     "Alpha", "Beta", "Unlimited", "Revised", "4th Edition", "5th Edition",
     "6th Edition", "7th Edition", "8th Edition", "9th Edition", "10th Edition",
@@ -500,6 +515,10 @@ Examples:
         "sets": {
             "mtg":     MTG_SETS,
             "pokemon": POKEMON_SETS,
+        },
+        "printing_types": {
+            "mtg":     MTG_PRINTING_TYPES,
+            "pokemon": POKEMON_PRINTING_TYPES,
         },
         "conditions":  CONDITIONS,
     }
