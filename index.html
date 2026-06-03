@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>TCG Optimizer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -14,259 +14,208 @@
   --border:#e1e4e8;
   --border2:#c8cdd3;
   --navy:#1a2035;
-  --navy2:#252d47;
   --blue:#3a7bd5;
   --blue2:#2d6bc4;
-  --accent:#e85d2e;
   --text:#1a1d23;
   --muted:#6b7280;
   --muted2:#9ca3af;
   --green:#16a34a;
-  --green2:#dcfce7;
   --red:#dc2626;
   --orange:#d97706;
-  --yellow:#f59e0b;
-  --purple:#7c3aed;
-  --purple2:#ede9fe;
-  --shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
-  --shadow2:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
-  --shadow3:0 10px 15px rgba(0,0,0,.1),0 4px 6px rgba(0,0,0,.05);
+  --shadow:0 1px 3px rgba(0,0,0,.1);
+  --shadow2:0 4px 12px rgba(0,0,0,.1);
   --radius:6px;
   --sans:'Inter',sans-serif;
-  --cond:'Barlow Condensed',sans-serif;
 }
 html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5}
 
-/* ── TOP NAV ── */
-.topnav{background:var(--navy);padding:0 20px;display:flex;align-items:center;gap:20px;height:52px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3)}
-.brand{font-family:var(--cond);font-size:20px;font-weight:700;color:#fff;letter-spacing:.02em;white-space:nowrap;display:flex;align-items:center;gap:8px}
-.brand-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
-.nav-search{flex:1;max-width:600px;position:relative}
-.nav-search input{width:100%;padding:8px 40px 8px 14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:var(--radius);color:#fff;font-family:var(--sans);font-size:14px;outline:none;transition:all .15s}
-.nav-search input::placeholder{color:rgba(255,255,255,.5)}
+/* NAV */
+.nav{background:var(--navy);height:52px;display:flex;align-items:center;padding:0 20px;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.nav-brand{font-size:16px;font-weight:700;color:#fff;white-space:nowrap}
+.nav-brand span{color:#e85d2e}
+.nav-search{flex:1;max-width:560px;position:relative}
+.nav-search input{width:100%;padding:8px 36px 8px 14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:var(--radius);color:#fff;font-family:var(--sans);font-size:14px;outline:none;transition:all .15s}
+.nav-search input::placeholder{color:rgba(255,255,255,.45)}
 .nav-search input:focus{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.4)}
-.nav-search-icon{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.5);pointer-events:none}
-.nav-pills{display:flex;gap:2px;margin-left:auto}
-.nav-pill{padding:6px 14px;border-radius:var(--radius);border:none;background:transparent;color:rgba(255,255,255,.7);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.nav-icon{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);pointer-events:none}
+.nav-pills{margin-left:auto;display:flex;gap:2px}
+.nav-pill{padding:5px 13px;background:transparent;border:none;border-radius:var(--radius);color:rgba(255,255,255,.65);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
 .nav-pill:hover{background:rgba(255,255,255,.1);color:#fff}
 .nav-pill.active{background:rgba(255,255,255,.18);color:#fff}
 
-/* ── LAYOUT ── */
-.shell{max-width:1180px;margin:0 auto;padding:20px 16px 60px;display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start}
-@media(max-width:768px){.shell{grid-template-columns:1fr}}
+/* LAYOUT */
+.shell{max-width:1100px;margin:0 auto;padding:20px 16px 60px;display:grid;grid-template-columns:250px 1fr;gap:20px;align-items:start}
+@media(max-width:720px){.shell{grid-template-columns:1fr}}
 
-/* ── SIDEBAR ── */
+/* SIDEBAR */
 .sidebar{display:flex;flex-direction:column;gap:12px}
-.card-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
-.card-box-header{padding:12px 14px 10px;border-bottom:1px solid var(--border);font-weight:600;font-size:13px;color:var(--navy);display:flex;align-items:center;justify-content:space-between}
-.card-box-body{padding:14px}
+.box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.box-head{padding:11px 14px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--navy);letter-spacing:.02em;display:flex;align-items:center;justify-content:space-between}
+.box-body{padding:14px}
 
 /* Slots */
-.slot{border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;background:#fafbfc;position:relative;transition:border-color .15s}
+.slot{border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;background:#fafbfc;transition:border-color .15s;position:relative}
 .slot:focus-within{border-color:var(--blue);background:#fff}
-.slot-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
-.slot-name-wrap{position:relative}
-.slot-name{width:100%;background:transparent;border:none;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;outline:none;padding:0}
+.slot-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.slot-row{display:flex;align-items:center;gap:6px}
+.slot-name{flex:1;background:transparent;border:none;color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;outline:none;min-width:0}
 .slot-name::placeholder{color:var(--muted2)}
-.slot-bottom{display:flex;gap:6px;margin-top:8px}
-.slot-select{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--sans);font-size:11px;padding:4px 6px;outline:none;cursor:pointer}
-.slot-select:focus{border-color:var(--blue)}
-.slot-remove{background:none;border:none;color:var(--muted2);cursor:pointer;padding:2px 4px;border-radius:3px;font-size:14px;line-height:1;transition:color .12s}
-.slot-remove:hover{color:var(--red)}
-.slot-custom-toggle{font-size:10px;color:var(--blue);cursor:pointer;text-decoration:none;margin-top:4px;display:inline-block}
-.slot-custom-toggle:hover{text-decoration:underline}
-.add-slot-btn{width:100%;padding:8px;background:transparent;border:1px dashed var(--border2);border-radius:var(--radius);color:var(--muted);font-family:var(--sans);font-size:12px;cursor:pointer;transition:all .15s;margin-bottom:10px}
-.add-slot-btn:hover{border-color:var(--blue);color:var(--blue)}
+.slot-rm{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:15px;line-height:1;padding:1px 3px;border-radius:3px;flex-shrink:0}
+.slot-rm:hover{color:var(--red)}
+.slot-foot{display:flex;align-items:center;gap:6px;margin-top:7px}
+.slot-set{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--sans);font-size:11px;padding:4px 6px;outline:none;cursor:pointer}
+.slot-set:focus{border-color:var(--blue)}
+.slot-custom-lnk{font-size:10px;color:var(--blue);cursor:pointer}
+.slot-custom-lnk:hover{text-decoration:underline}
+.slot-custom-input{width:100%;margin-top:7px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--sans);font-size:11px;padding:5px 8px;outline:none}
+.slot-custom-input:focus{border-color:var(--blue)}
 
-/* Buttons */
-.btn-primary{width:100%;padding:10px;background:var(--blue);border:none;border-radius:var(--radius);color:#fff;font-family:var(--cond);font-size:15px;font-weight:600;letter-spacing:.04em;cursor:pointer;transition:all .15s}
-.btn-primary:hover{background:var(--blue2)}
-.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+/* AC dropdown */
+.ac{position:absolute;top:calc(100% + 4px);left:-1px;right:-1px;z-index:300;background:#fff;border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow2);overflow:hidden}
+.ac-item{display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .08s}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover,.ac-item.hi{background:#f0f6ff}
+.ac-img{width:30px;height:42px;object-fit:contain;border-radius:2px;background:var(--bg);flex-shrink:0}
+.ac-img-ph{width:30px;height:42px;background:var(--bg);border-radius:2px;flex-shrink:0}
+.ac-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ac-name mark{background:none;color:var(--blue);font-weight:700}
+.ac-meta{font-size:10px;color:var(--muted);margin-top:1px}
+.ac-price{font-size:11px;font-weight:600;color:var(--green);white-space:nowrap;margin-left:auto}
+.ac-msg{padding:9px 12px;font-size:12px;color:var(--muted)}
 
-/* Condition filter */
-.cond-pills{display:flex;gap:4px;flex-wrap:wrap}
-.cond-pill{padding:4px 10px;border:1px solid var(--border2);border-radius:20px;background:transparent;font-family:var(--sans);font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .12s}
-.cond-pill:hover{border-color:var(--blue);color:var(--blue)}
-.cond-pill.active{background:var(--blue);border-color:var(--blue);color:#fff}
-.cond-note{font-size:10px;color:var(--muted2);margin-top:6px}
-
-/* File load */
-.file-load-area{border:2px dashed var(--border2);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
-.file-load-area:hover{border-color:var(--blue);background:#f0f6ff}
-.file-load-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.file-load-icon{font-size:22px;margin-bottom:6px}
-.file-load-text{font-size:12px;color:var(--muted);line-height:1.5}
-.file-load-text strong{color:var(--blue)}
-
-/* Status */
+.add-btn{width:100%;padding:7px;background:transparent;border:1px dashed var(--border2);border-radius:var(--radius);color:var(--muted);font-family:var(--sans);font-size:12px;cursor:pointer;margin-bottom:10px;transition:all .15s}
+.add-btn:hover{border-color:var(--blue);color:var(--blue)}
+.search-btn{width:100%;padding:10px;background:var(--blue);border:none;border-radius:var(--radius);color:#fff;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
+.search-btn:hover{background:var(--blue2)}
+.search-btn:disabled{opacity:.4;cursor:not-allowed}
 #status{font-size:11px;color:var(--muted);margin-top:8px;min-height:14px}
 #status.err{color:var(--red)}
 #status.ok{color:var(--green)}
 
-/* Autocomplete */
-.ac-drop{position:absolute;top:calc(100% + 4px);left:-12px;right:-12px;z-index:200;background:#fff;border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow3);overflow:hidden;animation:fadeDown .12s ease}
-.ac-item{padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .08s;display:flex;gap:10px;align-items:center}
-.ac-item:last-child{border-bottom:none}
-.ac-item:hover,.ac-item.focused{background:#f0f6ff}
-.ac-item-img{width:32px;height:44px;object-fit:contain;border-radius:3px;background:#f4f5f6;flex-shrink:0}
-.ac-item-img-placeholder{width:32px;height:44px;background:var(--bg);border-radius:3px;flex-shrink:0}
-.ac-item-info{flex:1;min-width:0}
-.ac-item-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ac-item-name mark{background:none;color:var(--blue);font-weight:700}
-.ac-item-meta{font-size:10px;color:var(--muted);margin-top:1px}
-.ac-item-price{font-size:11px;font-weight:600;color:var(--green);white-space:nowrap}
-.ac-item-rarity{display:inline-block;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;margin-right:4px;text-transform:uppercase;letter-spacing:.05em}
-.ac-loading,.ac-empty{padding:10px 12px;font-size:12px;color:var(--muted)}
+/* Condition */
+.cond-pills{display:flex;gap:4px;flex-wrap:wrap}
+.cp{padding:4px 10px;border:1px solid var(--border2);border-radius:20px;background:transparent;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .12s}
+.cp:hover{border-color:var(--blue);color:var(--blue)}
+.cp.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.cond-note{font-size:10px;color:var(--muted2);margin-top:6px}
 
-/* ── MAIN RESULTS ── */
-.main{}
-.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
-.results-title{font-family:var(--cond);font-size:18px;font-weight:700;color:var(--navy)}
-.results-count{font-size:12px;color:var(--muted)}
+/* File load */
+.file-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
+.file-zone:hover{border-color:var(--blue);background:#f0f6ff}
+.file-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.file-zone-txt{font-size:12px;color:var(--muted);line-height:1.6}
+.file-zone-txt strong{color:var(--blue)}
 
-/* Tabs */
-.tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:18px;gap:0}
-.tab{padding:9px 18px;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
+/* MAIN */
+.tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:16px}
+.tab{padding:9px 16px;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
 .tab:hover{color:var(--navy)}
 .tab.active{color:var(--blue);border-bottom-color:var(--blue)}
-.tab-count{background:var(--bg);border-radius:10px;padding:1px 7px;font-size:11px;font-weight:600;color:var(--muted)}
-.tab.active .tab-count{background:var(--blue);color:#fff}
+.tcount{background:var(--bg);border-radius:10px;padding:1px 7px;font-size:11px;font-weight:600;color:var(--muted)}
+.tab.active .tcount{background:var(--blue);color:#fff}
 
-/* Card grid */
-.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;margin-bottom:24px}
-.card-tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
-.card-tile:hover{box-shadow:var(--shadow3);transform:translateY(-2px);border-color:var(--border2)}
-.card-tile.sel{border-color:var(--blue);box-shadow:0 0 0 2px rgba(58,123,213,.2)}
-.card-img-wrap{background:#1a1d23;aspect-ratio:2.5/3.5;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
-.card-img{width:100%;height:100%;object-fit:cover}
-.card-img-placeholder{color:rgba(255,255,255,.15);font-size:28px}
-.card-info{padding:8px 10px}
-.card-name{font-size:12px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.card-set{font-size:10px;color:var(--muted);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-price-row{display:flex;align-items:baseline;gap:4px}
-.card-price-lbl{font-size:9px;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em}
-.card-price{font-size:13px;font-weight:700;color:var(--green)}
-.card-rarity{position:absolute;top:6px;right:6px}
-
-/* Rarity badges */
-.rarity{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
-.rarity-common{background:#6b7280;color:#fff}
-.rarity-uncommon{background:#6b7280;color:#fff}
-.rarity-rare{background:#2563eb;color:#fff}
-.rarity-mythic{background:#d97706;color:#fff}
-.rarity-ur,.rarity-ultra{background:#7c3aed;color:#fff}
-.rarity-sr,.rarity-secret{background:#db2777;color:#fff}
-.rarity-other{background:#374151;color:#fff}
-
-/* Printing badge */
-.print-badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:600;background:var(--purple2);color:var(--purple);text-transform:uppercase;letter-spacing:.04em}
-
-/* Shipping badge */
-.ship-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:500}
-.ship-covered{background:#dcfce7;color:#15803d}
-.ship-threshold{background:#fef3c7;color:#92400e}
-.ship-paid{background:#f3f4f6;color:#6b7280}
-
-/* ── BUNDLES ── */
-.bundle-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+/* Bundle */
+.bundle-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
 .bundle-meta{font-size:12px;color:var(--muted)}
-.filter-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;user-select:none}
-.filter-toggle input{accent-color:var(--blue);cursor:pointer}
-.filter-toggle:hover{color:var(--text)}
+.ftoggle{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);cursor:pointer;user-select:none}
+.ftoggle input{accent-color:var(--blue);cursor:pointer}
 
 .bundle{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;box-shadow:var(--shadow);overflow:hidden}
-.bundle.top-pick{border-color:var(--blue);box-shadow:0 0 0 2px rgba(58,123,213,.15)}
-.bundle-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap}
-.bundle-rank{font-family:var(--cond);font-size:13px;font-weight:700;color:var(--muted);min-width:28px}
+.bundle.best{border-color:var(--blue);box-shadow:0 0 0 2px rgba(58,123,213,.15)}
+.bundle-head{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.bundle-rank{font-size:12px;font-weight:700;color:var(--muted);min-width:24px}
 .bundle-seller{font-size:15px;font-weight:700;color:var(--navy);flex:1}
-.bundle-best-badge{background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.04em}
-.bundle-prices{display:flex;align-items:baseline;gap:8px}
-.bundle-total{font-family:var(--cond);font-size:22px;font-weight:700;color:var(--green)}
-.bundle-breakdown{font-size:11px;color:var(--muted)}
-.bundle-ship-badge{}
+.best-badge{background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
+.bundle-total{font-size:20px;font-weight:700;color:var(--green)}
+.bundle-breakdown{font-size:11px;color:var(--muted);margin-left:4px}
+.ship-all{background:#dcfce7;color:#15803d;font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px}
+.ship-some{background:#fef3c7;color:#92400e;font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px}
 
-.bundle-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1px;background:var(--border)}
-.bundle-card{background:var(--surface);padding:10px 12px;display:flex;gap:10px;align-items:flex-start}
-.bundle-card-img{width:38px;height:53px;object-fit:contain;border-radius:3px;background:#f4f5f6;flex-shrink:0}
-.bundle-card-img-ph{width:38px;height:53px;background:var(--bg);border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--muted2);font-size:16px;flex-shrink:0}
-.bundle-card-info{flex:1;min-width:0}
-.bundle-card-name{font-size:11px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:2px}
-.bundle-card-set{font-size:10px;color:var(--muted);margin-bottom:4px}
-.bundle-card-price{font-size:13px;font-weight:700;color:var(--green)}
-.bundle-card-cond{font-size:10px;color:var(--muted)}
-.bundle-card-link{font-size:10px;color:var(--blue);text-decoration:none;display:block;margin-top:3px}
-.bundle-card-link:hover{text-decoration:underline}
+.bundle-rows{background:var(--bg)}
+.bundle-row{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--surface);border-bottom:1px solid var(--border)}
+.bundle-row:last-child{border-bottom:none}
+.brow-img{width:36px;height:50px;object-fit:contain;border-radius:2px;background:var(--bg);flex-shrink:0}
+.brow-img-ph{width:36px;height:50px;background:var(--bg);border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--muted2);font-size:18px}
+.brow-info{flex:1;min-width:0}
+.brow-name{font-size:13px;font-weight:600;color:var(--text)}
+.brow-set{font-size:11px;color:var(--muted)}
+.brow-price{font-size:15px;font-weight:700;color:var(--green);white-space:nowrap}
+.brow-cond{font-size:11px;color:var(--muted);margin-top:2px}
+.brow-ship{margin-top:2px}
+.brow-link{font-size:11px;color:var(--blue);text-decoration:none;display:inline-block;margin-top:3px}
+.brow-link:hover{text-decoration:underline}
 
-/* ── SELLERS TABLE ── */
-.sellers-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-.chip-row{display:flex;gap:5px;flex-wrap:wrap}
-.chip{padding:3px 10px;border-radius:20px;border:1px solid var(--border2);font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .12s;background:#fff}
+/* Sellers table */
+.stoolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{padding:3px 10px;border:1px solid var(--border2);border-radius:20px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;background:#fff;transition:all .12s}
 .chip:hover{border-color:var(--blue);color:var(--blue)}
-.chip.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
 
-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
-thead th{background:#f8f9fa;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);font-size:12px;overflow:hidden}
+thead th{background:#f8f9fa;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
 tbody tr{border-bottom:1px solid var(--border);transition:background .08s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:#f8f9fa}
-tbody td{padding:10px 12px;vertical-align:middle}
-.td-seller{font-weight:600;font-size:13px;color:var(--navy)}
+td{padding:9px 12px;vertical-align:middle}
+.td-seller{font-size:13px;font-weight:600;color:var(--navy)}
 .td-price{font-size:14px;font-weight:700;color:var(--green)}
 .td-landed{font-size:10px;color:var(--muted);margin-top:1px}
-.td-card{color:var(--text);font-weight:500}
-.td-set{font-size:10px;color:var(--muted)}
 .td-link{color:var(--blue);text-decoration:none;font-size:11px}
 .td-link:hover{text-decoration:underline}
 
 /* Condition badges */
-.cond{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:600}
-.cond-nm{background:#dcfce7;color:#15803d}
-.cond-lp{background:#d1fae5;color:#065f46}
-.cond-mp{background:#fef3c7;color:#92400e}
-.cond-hp{background:#fee2e2;color:#b91c1c}
-.cond-d{background:#fce7f3;color:#9d174d}
+.cond{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600}
+.nm{background:#dcfce7;color:#15803d}
+.lp{background:#d1fae5;color:#065f46}
+.mp{background:#fef3c7;color:#92400e}
+.hp{background:#fee2e2;color:#b91c1c}
+.dmg{background:#fce7f3;color:#9d174d}
+
+/* Shipping */
+.sh{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:500}
+.sh-ok{background:#dcfce7;color:#15803d}
+.sh-thr{background:#fef3c7;color:#92400e}
+.sh-pay{background:#f3f4f6;color:#6b7280}
+
+/* Print badge */
+.pb{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600;background:#ede9fe;color:#7c3aed;margin-top:2px}
 
 /* Export */
-.export-row{display:flex;gap:8px;margin-top:16px}
-.btn-export{padding:7px 14px;background:#fff;border:1px solid var(--border2);border-radius:var(--radius);font-family:var(--sans);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s}
-.btn-export:hover{border-color:var(--blue);color:var(--blue)}
+.export-row{display:flex;gap:8px;margin-top:14px}
+.exp-btn{padding:6px 13px;background:#fff;border:1px solid var(--border2);border-radius:var(--radius);font-family:var(--sans);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s}
+.exp-btn:hover{border-color:var(--blue);color:var(--blue)}
 
-/* Empty state */
+/* Empty */
 .empty{text-align:center;padding:60px 20px;color:var(--muted)}
-.empty-icon{font-size:40px;margin-bottom:12px;opacity:.3}
-.empty-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px}
-.empty-sub{font-size:13px;line-height:1.6}
+.empty-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px}
+.empty-sub{font-size:13px;line-height:1.7}
+.empty code{background:var(--bg);padding:2px 6px;border-radius:3px;font-size:12px}
 
 /* Spinner */
-.spin{display:inline-block;width:11px;height:11px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:rotate .7s linear infinite;vertical-align:middle;margin-right:5px}
+.spin{display:inline-block;width:10px;height:10px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:rot .7s linear infinite;vertical-align:middle;margin-right:4px}
+@keyframes rot{to{transform:rotate(360deg)}}
 
-/* Setup box */
-.setup-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
-.setup-row{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border)}
+/* Setup */
+.setup-row{display:flex;align-items:flex-start;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border)}
 .setup-row:last-child{border-bottom:none}
-.setup-icon{font-size:14px;flex-shrink:0;margin-top:1px}
 .setup-text{flex:1}
 .setup-name{font-size:12px;font-weight:600;margin-bottom:2px}
 .setup-fix{font-size:11px;color:var(--muted);line-height:1.6}
-.setup-fix code{background:var(--bg);padding:1px 5px;border-radius:3px;font-size:10px;color:var(--navy)}
+.setup-fix code{background:var(--bg);padding:1px 5px;border-radius:3px;font-size:10px}
 .setup-fix a{color:var(--blue);text-decoration:none}
-.setup-fix a:hover{text-decoration:underline}
-.setup-done-btn{padding:3px 10px;border-radius:3px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid;transition:all .12s;white-space:nowrap;flex-shrink:0}
-.setup-done-btn.done{background:#f3f4f6;border-color:var(--border2);color:var(--muted)}
-.setup-done-btn.todo{background:var(--blue);border-color:var(--blue);color:#fff}
-
-@keyframes rotate{to{transform:rotate(360deg)}}
-@keyframes fadeDown{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.sdone{padding:3px 9px;border-radius:3px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid;flex-shrink:0;white-space:nowrap;transition:all .12s}
+.sdone.todo{background:var(--blue);border-color:var(--blue);color:#fff}
+.sdone.done{background:#f3f4f6;border-color:var(--border2);color:var(--muted)}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav class="topnav">
-  <div class="brand"><div class="brand-dot"></div>TCG Optimizer</div>
+<nav class="nav">
+  <div class="nav-brand">TCG<span>Optimizer</span></div>
   <div class="nav-search">
-    <input type="text" id="navSearch" placeholder="Search cards, sets…" autocomplete="off"/>
-    <svg class="nav-search-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="navSearch" type="text" placeholder="Search cards…" autocomplete="off"/>
+    <svg class="nav-icon" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
   </div>
   <div class="nav-pills">
     <button class="nav-pill active" data-game="pokemon">Pokémon</button>
@@ -275,312 +224,272 @@ tbody td{padding:10px 12px;vertical-align:middle}
 </nav>
 
 <div class="shell">
-<!-- SIDEBAR -->
 <aside class="sidebar">
 
-  <!-- Card slots -->
-  <div class="card-box">
-    <div class="card-box-header">
-      Find Sellers With All Cards
-      <span style="font-size:10px;color:var(--muted);font-weight:400">ALL must match</span>
+  <div class="box">
+    <div class="box-head">
+      Card List
+      <span style="font-size:10px;font-weight:400;color:var(--muted)">ALL must match</span>
     </div>
-    <div class="card-box-body">
-      <div id="cardSlots"></div>
-      <button class="add-slot-btn" id="addSlotBtn">+ Add card</button>
-      <button class="btn-primary" id="searchBtn">Search TCGPlayer</button>
+    <div class="box-body">
+      <div id="slots"></div>
+      <button class="add-btn" id="addBtn">+ Add card</button>
+      <button class="search-btn" id="searchBtn">Search TCGPlayer</button>
       <div id="status"></div>
     </div>
   </div>
 
-  <!-- Condition -->
-  <div class="card-box">
-    <div class="card-box-header">Minimum Condition</div>
-    <div class="card-box-body">
+  <div class="box">
+    <div class="box-head">Minimum Condition</div>
+    <div class="box-body">
       <div class="cond-pills">
-        <button class="cond-pill active" data-cond="">Any</button>
-        <button class="cond-pill" data-cond="NM">NM</button>
-        <button class="cond-pill" data-cond="LP">LP+</button>
-        <button class="cond-pill" data-cond="MP">MP+</button>
-        <button class="cond-pill" data-cond="HP">HP+</button>
+        <button class="cp active" data-c="">Any</button>
+        <button class="cp" data-c="NM">NM</button>
+        <button class="cp" data-c="LP">LP+</button>
+        <button class="cp" data-c="MP">MP+</button>
+        <button class="cp" data-c="HP">HP+</button>
       </div>
       <div class="cond-note" id="condNote">Showing all conditions</div>
     </div>
   </div>
 
-  <!-- Load results -->
-  <div class="card-box">
-    <div class="card-box-header">Load Results</div>
-    <div class="card-box-body">
-      <div class="file-load-area">
+  <div class="box">
+    <div class="box-head">Load Results</div>
+    <div class="box-body">
+      <div class="file-zone">
         <input type="file" id="fileInput" accept=".json"/>
-        <div class="file-load-icon">📂</div>
-        <div class="file-load-text">
+        <div class="file-zone-txt">
           <strong>Choose file</strong> or drop here<br>
-          Load <code>data/results.json</code> from scraper
+          Load <code>data/results.json</code> from scraper<br>
+          or <code>catalog/[game]/index.json</code>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Setup -->
-  <div class="card-box" id="setupBox">
-    <div class="card-box-header">
+  <div class="box" id="setupBox">
+    <div class="box-head">
       Setup
-      <button class="setup-done-btn done" id="collapseSetup" style="border:none;background:none;cursor:pointer;font-size:11px;color:var(--muted)">hide</button>
+      <button id="collapseSetup" style="background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer">hide</button>
     </div>
     <div id="setupRows"></div>
   </div>
 
 </aside>
 
-<!-- MAIN -->
-<main class="main">
-  <div id="mainContent"></div>
+<main>
+  <div id="main"></div>
 </main>
 </div>
 
 <script>
 // ── State ──────────────────────────────────────────────────────────────────
-const S = {
+const G = {
   game: 'pokemon',
   slots: [],
-  catalog: [],       // loaded from catalog/[game]/index.json via file
-  products: [],
-  sellers: [],
-  combos: [],
-  searchKeys: [],
+  catalog: [],
+  products: [], sellers: [], combos: [], searchKeys: [],
   tab: 'bundles',
   filterCard: null,
-  filterFreeShip: false,
-  minCondition: '',
+  filterShip: false,
+  minCond: '',
 };
 
-// ── Game sets ──────────────────────────────────────────────────────────────
 const MTG_SETS = ["Alpha","Beta","Unlimited","Revised","4th Edition","5th Edition","6th Edition","7th Edition","8th Edition","9th Edition","10th Edition","Arabian Nights","Antiquities","Legends","The Dark","Fallen Empires","Ice Age","Homelands","Alliances","Mirage","Visions","Weatherlight","Tempest","Stronghold","Exodus","Urza's Saga","Urza's Legacy","Urza's Destiny","Mercadian Masques","Nemesis","Prophecy","Invasion","Planeshift","Apocalypse","Odyssey","Torment","Judgment","Onslaught","Legions","Scourge","Mirrodin","Darksteel","Fifth Dawn","Champions of Kamigawa","Ravnica","Innistrad","Return to Ravnica","Theros","Khans of Tarkir","Battle for Zendikar","Shadows over Innistrad","Kaladesh","Amonkhet","Ixalan","Guilds of Ravnica","War of the Spark","Throne of Eldraine","Ikoria","Kaldheim","Strixhaven","Innistrad: Midnight Hunt","Kamigawa: Neon Dynasty","Streets of New Capenna","The Brothers' War","March of the Machine","Wilds of Eldraine","The Lost Caverns of Ixalan","Murders at Karlov Manor","Outlaws of Thunder Junction","Bloomburrow","Duskmourn","Modern Horizons","Modern Horizons 2","Modern Horizons 3","Commander","Double Masters","Jumpstart"];
-const POKEMON_SETS = ["Base Set","Base Set Shadowless","Base Set 1st Edition","Jungle","Fossil","Team Rocket","Gym Heroes","Gym Challenge","Neo Genesis","Neo Discovery","Neo Revelation","Neo Destiny","Legendary Collection","Expedition","Aquapolis","Skyridge","Ruby & Sapphire","Sandstorm","Dragon","Team Magma vs Team Aqua","Hidden Legends","FireRed & LeafGreen","Team Rocket Returns","Deoxys","Emerald","Unseen Forces","Delta Species","Legend Maker","Holon Phantoms","Crystal Guardians","Dragon Frontiers","Power Keepers","Diamond & Pearl","Mysterious Treasures","Secret Wonders","Great Encounters","Majestic Dawn","Legends Awakened","Stormfront","Platinum","Rising Rivals","Supreme Victors","Arceus","HeartGold SoulSilver","Unleashed","Undaunted","Triumphant","Call of Legends","Black & White","Emerging Powers","Noble Victories","Next Destinies","Dark Explorers","Dragons Exalted","Boundaries Crossed","Plasma Storm","Plasma Freeze","Plasma Blast","Legendary Treasures","XY","Flashfire","Furious Fists","Phantom Forces","Primal Clash","Roaring Skies","Ancient Origins","BREAKthrough","BREAKpoint","Fates Collide","Steam Siege","Evolutions","Sun & Moon","Guardians Rising","Burning Shadows","Crimson Invasion","Ultra Prism","Forbidden Light","Celestial Storm","Lost Thunder","Team Up","Unbroken Bonds","Unified Minds","Cosmic Eclipse","Sword & Shield","Rebel Clash","Darkness Ablaze","Champion's Path","Vivid Voltage","Battle Styles","Chilling Reign","Evolving Skies","Fusion Strike","Brilliant Stars","Astral Radiance","Lost Origin","Silver Tempest","Crown Zenith","Scarlet & Violet","Paldea Evolved","Obsidian Flames","Paradox Rift","Paldean Fates","Temporal Forces","Twilight Masquerade","Shrouded Fable","Stellar Crown","Surging Sparks","Prismatic Evolutions","Destined Rivals"];
-
-function sets() { return S.game === 'mtg' ? MTG_SETS : POKEMON_SETS; }
+const POKE_SETS = ["Base Set","Base Set Shadowless","Base Set 1st Edition","Jungle","Fossil","Team Rocket","Gym Heroes","Gym Challenge","Neo Genesis","Neo Discovery","Neo Revelation","Neo Destiny","Legendary Collection","Expedition","Aquapolis","Skyridge","Ruby & Sapphire","Sandstorm","Dragon","Team Magma vs Team Aqua","Hidden Legends","FireRed & LeafGreen","Team Rocket Returns","Deoxys","Emerald","Unseen Forces","Delta Species","Legend Maker","Holon Phantoms","Crystal Guardians","Dragon Frontiers","Power Keepers","Diamond & Pearl","Mysterious Treasures","Secret Wonders","Great Encounters","Majestic Dawn","Legends Awakened","Stormfront","Platinum","Rising Rivals","Supreme Victors","Arceus","HeartGold SoulSilver","Unleashed","Undaunted","Triumphant","Call of Legends","Black & White","Emerging Powers","Noble Victories","Next Destinies","Dark Explorers","Dragons Exalted","Boundaries Crossed","Plasma Storm","Plasma Freeze","Plasma Blast","Legendary Treasures","XY","Flashfire","Furious Fists","Phantom Forces","Primal Clash","Roaring Skies","Ancient Origins","BREAKthrough","BREAKpoint","Fates Collide","Steam Siege","Evolutions","Sun & Moon","Guardians Rising","Burning Shadows","Crimson Invasion","Ultra Prism","Forbidden Light","Celestial Storm","Lost Thunder","Team Up","Unbroken Bonds","Unified Minds","Cosmic Eclipse","Sword & Shield","Rebel Clash","Darkness Ablaze","Champion's Path","Vivid Voltage","Battle Styles","Chilling Reign","Evolving Skies","Fusion Strike","Brilliant Stars","Astral Radiance","Lost Origin","Silver Tempest","Crown Zenith","Scarlet & Violet","Paldea Evolved","Obsidian Flames","Paradox Rift","Paldean Fates","Temporal Forces","Twilight Masquerade","Shrouded Fable","Stellar Crown","Surging Sparks","Prismatic Evolutions","Destined Rivals"];
+const sets = () => G.game === 'mtg' ? MTG_SETS : POKE_SETS;
 
 // ── Init ───────────────────────────────────────────────────────────────────
 addSlot(); addSlot();
-renderSlots();
-renderSetup();
-renderMain();
+renderSlots(); renderSetup(); renderMain();
 
-// ── Game switch ────────────────────────────────────────────────────────────
+// ── Game ───────────────────────────────────────────────────────────────────
 document.querySelectorAll('.nav-pill').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('.nav-pill').forEach(x => x.classList.remove('active'));
-  b.classList.add('active');
-  S.game = b.dataset.game;
-  renderSlots();
+  b.classList.add('active'); G.game = b.dataset.game; renderSlots();
 }));
 
 // ── Slots ──────────────────────────────────────────────────────────────────
-document.getElementById('addSlotBtn').addEventListener('click', () => { addSlot(); renderSlots(); });
-
-function addSlot() {
-  S.slots.push({ name: '', set: '', customEdition: '', useCustom: false });
-}
-function removeSlot(i) {
-  S.slots.splice(i, 1);
-  if (!S.slots.length) addSlot();
-  renderSlots();
-}
+document.getElementById('addBtn').addEventListener('click', () => { addSlot(); renderSlots(); });
+function addSlot() { G.slots.push({ name:'', set:'', custom:'', useCustom:false }); }
+function removeSlot(i) { G.slots.splice(i,1); if(!G.slots.length) addSlot(); renderSlots(); }
+function toggleCustom(i) { G.slots[i].useCustom = !G.slots[i].useCustom; renderSlots(); }
 
 function renderSlots() {
-  document.getElementById('cardSlots').innerHTML = S.slots.map((slot, i) => `
-    <div class="slot">
-      <div class="slot-label">Card ${i+1}</div>
-      <div class="slot-name-wrap">
-        <input class="slot-name" type="text" placeholder="Card name…" value="${esc(slot.name)}"
+  document.getElementById('slots').innerHTML = G.slots.map((s,i) => `
+    <div class="slot" id="slot${i}">
+      <div class="slot-lbl">Card ${i+1}</div>
+      <div class="slot-row" style="position:relative">
+        <input class="slot-name" type="text" placeholder="Card name…" value="${esc(s.name)}"
           autocomplete="off"
-          oninput="onSlotInput(${i},this.value)"
-          onkeydown="onSlotKey(event,${i})"
-          onblur="scheduleClose(${i})"
-          onfocus="if(this.value.length>=2)onSlotInput(${i},this.value)"/>
-        <div class="ac-drop" id="ac-${i}" style="display:none"></div>
+          oninput="onInput(${i},this.value)"
+          onkeydown="onKey(event,${i})"
+          onblur="schedClose(${i})"
+          onfocus="if(this.value.length>=2)onInput(${i},this.value)"/>
+        ${G.slots.length>1?`<button class="slot-rm" onclick="removeSlot(${i})">×</button>`:''}
+        <div class="ac" id="ac${i}" style="display:none"></div>
       </div>
-      ${slot.useCustom ? `
-        <input type="text" class="slot-select" style="margin-top:6px" placeholder="Custom version e.g. Alpha, Extended Art…"
-          value="${esc(slot.customEdition)}" oninput="S.slots[${i}].customEdition=this.value"/>
-        <span class="slot-custom-toggle" onclick="toggleCustom(${i})">↩ Use set dropdown</span>
+      ${s.useCustom ? `
+        <input class="slot-custom-input" type="text" placeholder="e.g. Alpha, Extended Art, Base Set 1st Edition…"
+          value="${esc(s.custom)}" oninput="G.slots[${i}].custom=this.value"/>
+        <span class="slot-custom-lnk" onclick="toggleCustom(${i})">↩ Use set dropdown</span>
       ` : `
-        <div class="slot-bottom">
-          <select class="slot-select" onchange="S.slots[${i}].set=this.value">
+        <div class="slot-foot">
+          <select class="slot-set" onchange="G.slots[${i}].set=this.value">
             <option value="">Any set</option>
-            ${sets().map(s=>`<option value="${esc(s)}"${slot.set===s?' selected':''}>${esc(s)}</option>`).join('')}
+            ${sets().map(x=>`<option value="${esc(x)}"${s.set===x?' selected':''}>${esc(x)}</option>`).join('')}
           </select>
-          ${S.slots.length > 1 ? `<button class="slot-remove" onclick="removeSlot(${i})">×</button>` : ''}
         </div>
-        <span class="slot-custom-toggle" onclick="toggleCustom(${i})">✎ Custom version</span>
+        <span class="slot-custom-lnk" onclick="toggleCustom(${i})">✎ Custom version</span>
       `}
     </div>`).join('');
 }
 
-function toggleCustom(i) { S.slots[i].useCustom = !S.slots[i].useCustom; renderSlots(); }
+// ── Autocomplete ───────────────────────────────────────────────────────────
+const AT={}, AF={}, AR={};
 
-// ── Autocomplete (catalog-powered) ────────────────────────────────────────
-const acT = {}, acF = {}, acR = {};
-
-async function onSlotInput(i, val) {
-  S.slots[i].name = val;
-  const drop = document.getElementById(`ac-${i}`);
-  if (!drop) return;
-  if (val.length < 2) { drop.style.display = 'none'; return; }
-  clearTimeout(acT[i]);
-  acT[i] = setTimeout(() => fetchAC(i, val), 250);
+async function onInput(i, val) {
+  G.slots[i].name = val;
+  const d = document.getElementById(`ac${i}`);
+  if (!d) return;
+  if (val.length < 2) { d.style.display='none'; return; }
+  clearTimeout(AT[i]);
+  AT[i] = setTimeout(() => fetchAC(i, val), 260);
 }
 
-async function fetchAC(i, query) {
-  const drop = document.getElementById(`ac-${i}`);
-  if (!drop) return;
-  drop.innerHTML = `<div class="ac-loading"><span class="spin"></span>Searching…</div>`;
-  drop.style.display = 'block';
-
-  const q = query.toLowerCase();
+async function fetchAC(i, q) {
+  const d = document.getElementById(`ac${i}`); if (!d) return;
+  d.innerHTML = `<div class="ac-msg"><span class="spin"></span>Searching…</div>`;
+  d.style.display = 'block';
+  const ql = q.toLowerCase();
   let results = [];
 
-  // Search local catalog first (fast, has images + prices)
-  if (S.catalog.length) {
-    results = S.catalog
-      .filter(p => p.name.toLowerCase().includes(q) || p.clean.toLowerCase().includes(q))
-      .slice(0, 12)
-      .map(p => ({
-        id: p.id, name: p.name, set: p.set, image: p.image,
-        rarity: p.rarity, url: p.url,
-        price: getMarketPrice(p.prices),
-        baseName: p.name.replace(/\s*\(.*?\)\s*$/, '').trim(),
-        printing: extractPrinting(p.name, p.set),
+  // Local catalog first
+  if (G.catalog.length) {
+    results = G.catalog
+      .filter(p => p.name.toLowerCase().includes(ql) || (p.clean||'').toLowerCase().includes(ql))
+      .slice(0,12).map(p => ({
+        name: p.name,
+        base: p.name.replace(/\s*\(.*?\)\s*$/,'').trim(),
+        set: p.set||'', image: p.image||'',
+        price: mktPrice(p.prices),
+        printing: getPrinting(p.name),
       }));
   }
 
-  // Fallback to Scryfall (MTG) or PokémonTCG API
+  // Fallback APIs
   if (!results.length) {
     try {
-      if (S.game === 'mtg') {
-        const r = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(query)}&include_extras=true`);
-        const d = await r.json();
-        results = (d.data || []).map(n => ({ name: n, baseName: n.replace(/\s*\(.*?\)\s*$/,'').trim(), set:'', image:'', price:null, printing: extractPrinting(n,'') }));
+      if (G.game === 'mtg') {
+        const r = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(q)}&include_extras=true`);
+        const j = await r.json();
+        results = (j.data||[]).map(n=>({name:n,base:n.replace(/\s*\(.*?\)\s*$/,'').trim(),set:'',image:'',price:null,printing:getPrinting(n)}));
       } else {
-        const r = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${encodeURIComponent(query)}*"&select=name,set,images&pageSize=15`);
-        const d = await r.json();
-        const seen = new Set();
-        results = (d.data||[]).filter(c=>{ if(seen.has(c.name))return false;seen.add(c.name);return true;})
-          .map(c=>({ name:c.name, baseName:c.name, set:c.set?.name||'', image:c.images?.small||'', price:null, printing:'' }));
+        const r = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${encodeURIComponent(q)}*"&select=name,set,images&pageSize=15`);
+        const j = await r.json();
+        const seen=new Set();
+        results = (j.data||[]).filter(c=>{if(seen.has(c.name))return false;seen.add(c.name);return true;})
+          .map(c=>({name:c.name,base:c.name,set:c.set?.name||'',image:c.images?.small||'',price:null,printing:''}));
       }
     } catch(e) {}
   }
 
-  acR[i] = results;
-  acF[i] = -1;
-  renderAC(i, query, results);
+  AR[i] = results; AF[i] = -1;
+  renderAC(i, q, results);
 }
 
-function getMarketPrice(prices) {
+function mktPrice(prices) {
   if (!prices) return null;
   for (const sub of Object.values(prices)) {
-    const nm = sub['Near Mint'] || sub['NM'];
+    const nm = sub['Near Mint']||sub['NM'];
     if (nm?.market) return nm.market;
   }
   return null;
 }
 
-function extractPrinting(name, set) {
+function getPrinting(name) {
   const m = name.match(/\(([^)]+)\)\s*$/);
   if (!m) return '';
-  const tag = m[1].toLowerCase();
-  const kw = ['extended art','borderless','showcase','foil','etched','gilded','textured','surge','galaxy','halo','serialized','retro','full art','alternate art','illustration rare','hyper rare','rainbow','secret rare','reverse holo','holofoil','1st edition','shadowless'];
-  return kw.some(k => tag.includes(k)) ? m[1] : '';
+  const t = m[1].toLowerCase();
+  const kw = ['extended art','borderless','showcase','foil','etched','gilded','textured','surge','galaxy','serialized','retro','full art','alternate art','illustration rare','hyper rare','rainbow','secret rare','reverse holo','holofoil','1st edition','shadowless'];
+  return kw.some(k=>t.includes(k)) ? m[1] : '';
 }
 
-function renderAC(i, query, results) {
-  const drop = document.getElementById(`ac-${i}`);
-  if (!drop) return;
-  if (!results.length) { drop.innerHTML = `<div class="ac-empty">No results found</div>`; drop.style.display='block'; return; }
-  const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
-  drop.innerHTML = results.slice(0,10).map((r,idx) => {
-    const hl = r.name.replace(re, '<mark>$1</mark>');
-    const pr = r.price ? `<span class="ac-item-price">$${r.price.toFixed(2)}</span>` : '';
-    const pb = r.printing ? `<span class="rarity rarity-other" style="margin-right:3px">${esc(r.printing)}</span>` : '';
-    return `<div class="ac-item" onmousedown="selectAC(${i},${idx})" onmouseover="setACF(${i},${idx})">
-      ${r.image ? `<img class="ac-item-img" src="${esc(r.image)}" loading="lazy" onerror="this.style.display='none'"/>` : `<div class="ac-item-img-placeholder"></div>`}
-      <div class="ac-item-info">
-        <div class="ac-item-name">${hl}</div>
-        <div class="ac-item-meta">${pb}${esc(r.set)}</div>
+function renderAC(i, q, results) {
+  const d = document.getElementById(`ac${i}`); if (!d) return;
+  if (!results.length) { d.innerHTML=`<div class="ac-msg">No results</div>`; d.style.display='block'; return; }
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+  d.innerHTML = results.slice(0,10).map((r,idx) => {
+    const hl = r.name.replace(re,'<mark>$1</mark>');
+    const pr = r.price ? `<span class="ac-price">$${r.price.toFixed(2)}</span>` : '';
+    const pb = r.printing ? `<span class="pb" style="margin-right:3px">${esc(r.printing)}</span>` : '';
+    return `<div class="ac-item" onmousedown="selAC(${i},${idx})" onmouseover="setAF(${i},${idx})">
+      ${r.image?`<img class="ac-img" src="${esc(r.image)}" loading="lazy" onerror="this.style.display='none'"/>`:`<div class="ac-img-ph"></div>`}
+      <div style="flex:1;min-width:0">
+        <div class="ac-name">${hl}</div>
+        <div class="ac-meta">${pb}${esc(r.set)}</div>
       </div>
       ${pr}
     </div>`;
   }).join('');
-  drop.style.display = 'block';
+  d.style.display = 'block';
 }
 
-function selectAC(i, idx) {
-  const r = (acR[i]||[])[idx]; if(!r) return;
-  S.slots[i].name = r.baseName;
-  if (!S.slots[i].set && r.set && sets().includes(r.set)) S.slots[i].set = r.set;
-  const inp = document.querySelector(`#slot-${i} .slot-name, .slot:nth-child(${i+1}) .slot-name`);
-  // re-render slots to update values
-  S.slots[i].name = r.baseName;
-  renderSlots();
-  closeAC(i);
+function selAC(i, idx) {
+  const r=(AR[i]||[])[idx]; if(!r) return;
+  G.slots[i].name = r.base;
+  if (!G.slots[i].set && r.set && sets().includes(r.set)) G.slots[i].set = r.set;
+  renderSlots(); closeAC(i);
 }
+function setAF(i,idx){AF[i]=idx;document.querySelectorAll(`#ac${i} .ac-item`).forEach((e,j)=>e.classList.toggle('hi',j===idx));}
+function onKey(e,i){
+  const d=document.getElementById(`ac${i}`),items=AR[i]||[],vis=d&&d.style.display!=='none';
+  if(e.key==='ArrowDown'){e.preventDefault();if(!vis)return;AF[i]=Math.min((AF[i]??-1)+1,Math.min(items.length,10)-1);setAF(i,AF[i]);}
+  else if(e.key==='ArrowUp'){e.preventDefault();AF[i]=Math.max((AF[i]??0)-1,0);setAF(i,AF[i]);}
+  else if(e.key==='Enter'){if(vis&&AF[i]>=0&&items[AF[i]]){e.preventDefault();selAC(i,AF[i]);}}
+  else if(e.key==='Escape')closeAC(i);
+}
+function closeAC(i){const d=document.getElementById(`ac${i}`);if(d)d.style.display='none';}
+function schedClose(i){setTimeout(()=>closeAC(i),180);}
 
-function setACF(i, idx) {
-  acF[i] = idx;
-  document.querySelectorAll(`#ac-${i} .ac-item`).forEach((el,j)=>el.classList.toggle('focused',j===idx));
-}
-
-function onSlotKey(e, i) {
-  const drop = document.getElementById(`ac-${i}`);
-  const items = acR[i] || [];
-  const vis = drop && drop.style.display !== 'none';
-  if (e.key==='ArrowDown') { e.preventDefault(); if(!vis)return; acF[i]=Math.min((acF[i]??-1)+1,Math.min(items.length,10)-1); setACF(i,acF[i]); }
-  else if (e.key==='ArrowUp') { e.preventDefault(); acF[i]=Math.max((acF[i]??0)-1,0); setACF(i,acF[i]); }
-  else if (e.key==='Enter') { if(vis&&acF[i]>=0&&items[acF[i]]){e.preventDefault();selectAC(i,acF[i]);} }
-  else if (e.key==='Escape') closeAC(i);
-}
-function closeAC(i) { const d=document.getElementById(`ac-${i}`); if(d) d.style.display='none'; }
-function scheduleClose(i) { setTimeout(()=>closeAC(i),200); }
+// Nav search mirrors slot 0
+document.getElementById('navSearch').addEventListener('input', e => {
+  if (G.slots.length) { G.slots[0].name=e.target.value; renderSlots(); }
+});
 
 // ── Search ─────────────────────────────────────────────────────────────────
-document.getElementById('searchBtn').addEventListener('click', doSearch);
-
-async function doSearch() {
-  const valid = S.slots.filter(s => s.name.trim());
+document.getElementById('searchBtn').addEventListener('click', async () => {
+  const valid = G.slots.filter(s=>s.name.trim());
   if (!valid.length) { setStatus('Add at least one card name.','err'); return; }
   setStatus('<span class="spin"></span>Calling local proxy…');
   document.getElementById('searchBtn').disabled = true;
-  const params = valid.map(s => {
-    const ed = s.useCustom ? s.customEdition : s.set;
+  const params = valid.map(s=>{
+    const ed = s.useCustom ? s.custom : s.set;
     return `card=${encodeURIComponent(s.name.trim()+(ed?':'+ed:''))}`;
   }).join('&');
   try {
-    const res = await fetch(`http://localhost:7331/search?${params}&game=${S.game}`);
-    if (!res.ok) throw new Error(`Proxy error ${res.status}`);
+    const res = await fetch(`http://localhost:7331/search?${params}&game=${G.game}`);
+    if (!res.ok) throw new Error(`${res.status}`);
     loadData(await res.json());
-    setStatus(`Done. ${S.combos.length} bundle(s) found.`,'ok');
-  } catch(err) {
-    setStatus(`Proxy not running — use file loader. (${err.message})`,'err');
-  } finally {
-    document.getElementById('searchBtn').disabled = false;
-  }
-}
+    setStatus(`Done. ${G.combos.length} seller bundle(s) found.`,'ok');
+  } catch(e) {
+    setStatus(`Proxy not running — use file loader instead. (${e.message})`,'err');
+  } finally { document.getElementById('searchBtn').disabled=false; }
+});
 
 // ── File loader ────────────────────────────────────────────────────────────
 document.getElementById('fileInput').addEventListener('change', e => {
-  const file = e.target.files[0]; if(!file) return;
-  const r = new FileReader();
-  r.onload = ev => {
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
     try {
-      const data = JSON.parse(ev.target.result);
-      // Could be results file or catalog index
+      const data=JSON.parse(ev.target.result);
       if (data.index) {
-        S.catalog = data.index;
-        setStatus(`Catalog loaded: ${S.catalog.length.toLocaleString()} cards. Autocomplete ready.`,'ok');
-        renderMain();
+        G.catalog=data.index;
+        setStatus(`Catalog: ${G.catalog.length.toLocaleString()} cards ready.`,'ok');
       } else {
         loadData(data);
-        setStatus(`${S.products.length} card(s), ${S.sellers.length} listing(s), ${S.combos.length} bundle(s).`,'ok');
+        setStatus(`${G.products.length} card(s) · ${G.sellers.length} listing(s) · ${G.combos.length} bundle(s).`,'ok');
       }
     } catch { setStatus('Failed to parse JSON.','err'); }
   };
@@ -588,323 +497,215 @@ document.getElementById('fileInput').addEventListener('change', e => {
 });
 
 function loadData(data) {
-  S.products   = data.products  || data.cards || [];
-  S.sellers    = data.sellers   || [];
-  S.combos     = data.combos    || [];
-  S.searchKeys = data.search_keys || [...new Set(S.sellers.map(s=>s.search_key))];
-  S.tab        = 'bundles';
-  S.filterCard = null;
+  G.products   = data.products||data.cards||[];
+  G.sellers    = data.sellers||[];
+  G.combos     = data.combos||[];
+  G.searchKeys = data.search_keys||[...new Set(G.sellers.map(s=>s.search_key))];
+  G.tab='bundles'; G.filterCard=null;
   renderMain();
-  updateTabCounts();
 }
 
-// ── Condition filter ───────────────────────────────────────────────────────
-const COND_RANK = {nm:5,'near mint':5,lp:4,'lightly played':4,mp:3,'moderately played':3,hp:2,'heavily played':2,damaged:1,d:1};
-const COND_MIN  = {'':0,NM:5,LP:4,MP:3,HP:2};
-const COND_NOTES = {'':'Showing all conditions',NM:'Near Mint only',LP:'Lightly Played or better',MP:'Moderately Played or better',HP:'Heavily Played or better'};
+// ── Condition ──────────────────────────────────────────────────────────────
+const CRANK={nm:5,'near mint':5,lp:4,'lightly played':4,mp:3,'moderately played':3,hp:2,'heavily played':2,damaged:1,d:1};
+const CMIN={'':0,NM:5,LP:4,MP:3,HP:2};
+const CNOTE={'':'Showing all conditions',NM:'Near Mint only',LP:'Lightly Played or better',MP:'Moderately Played or better',HP:'Heavily Played or better'};
+function condRank(s){const v=(s||'').toLowerCase();for(const[k,r]of Object.entries(CRANK))if(v.includes(k))return r;return 3;}
+function meetsMin(c){return!G.minCond||condRank(c)>=CMIN[G.minCond];}
 
-function condRank(s) {
-  const v = (s||'').toLowerCase().trim();
-  for(const [k,r] of Object.entries(COND_RANK)) if(v.includes(k)) return r;
-  return 3;
-}
-function meetsMin(cond) { return !S.minCondition || condRank(cond) >= COND_MIN[S.minCondition]; }
-
-document.querySelectorAll('.cond-pill').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('.cond-pill').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active');
-  S.minCondition = b.dataset.cond;
-  document.getElementById('condNote').textContent = COND_NOTES[S.minCondition];
-  renderMain();
+document.querySelectorAll('.cp').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.cp').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); G.minCond=b.dataset.c;
+  document.getElementById('condNote').textContent=CNOTE[G.minCond];
+  if(G.products.length||G.combos.length) renderMain();
 }));
 
-// ── Tabs ───────────────────────────────────────────────────────────────────
-function updateTabCounts() {
-  const bc = document.getElementById('tab-count-bundles');
-  const cc = document.getElementById('tab-count-cards');
-  const sc = document.getElementById('tab-count-sellers');
-  if(bc) bc.textContent = S.combos.length;
-  if(cc) cc.textContent = S.products.length;
-  if(sc) sc.textContent = S.sellers.length;
-}
-
-// ── Main render ────────────────────────────────────────────────────────────
+// ── Render ─────────────────────────────────────────────────────────────────
 function renderMain() {
-  const el = document.getElementById('mainContent');
-
-  if (!S.products.length && !S.combos.length) {
-    el.innerHTML = renderWelcome(); return;
-  }
-
-  el.innerHTML = `
-    <div class="results-header">
-      <div class="results-title">${S.game==='mtg'?'Magic: The Gathering':'Pokémon'} Results</div>
-    </div>
+  const el=document.getElementById('main');
+  if (!G.products.length&&!G.combos.length) { el.innerHTML=renderWelcome(); return; }
+  el.innerHTML=`
     <div class="tabs">
-      <button class="tab${S.tab==='bundles'?' active':''}" onclick="switchTab('bundles')">
-        Bundle Finder <span class="tab-count" id="tab-count-bundles">${S.combos.length}</span>
-      </button>
-      <button class="tab${S.tab==='cards'?' active':''}" onclick="switchTab('cards')">
-        Cards <span class="tab-count" id="tab-count-cards">${S.products.length}</span>
-      </button>
-      <button class="tab${S.tab==='sellers'?' active':''}" onclick="switchTab('sellers')">
-        All Listings <span class="tab-count" id="tab-count-sellers">${S.sellers.length}</span>
-      </button>
+      <button class="tab${G.tab==='bundles'?' active':''}" onclick="switchTab('bundles')">Bundle Finder <span class="tcount" id="tc-b">${G.combos.length}</span></button>
+      <button class="tab${G.tab==='sellers'?' active':''}" onclick="switchTab('sellers')">All Listings <span class="tcount" id="tc-s">${G.sellers.length}</span></button>
     </div>
     <div id="tabBody">${renderTab()}</div>`;
 }
 
 function switchTab(t) {
-  S.tab = t;
-  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(t==='bundles'?'bundle':t==='cards'?'card':'listing')));
-  document.getElementById('tabBody').innerHTML = renderTab();
+  G.tab=t;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',
+    (t==='bundles'&&b.textContent.includes('Bundle'))||(t==='sellers'&&b.textContent.includes('Listing'))));
+  document.getElementById('tabBody').innerHTML=renderTab();
 }
 
 function renderTab() {
-  if (S.tab==='bundles') return renderBundles();
-  if (S.tab==='cards')   return renderCards();
-  return renderSellers();
+  return G.tab==='bundles' ? renderBundles() : renderSellers();
 }
+
+function rerender() { document.getElementById('tabBody').innerHTML=renderTab(); }
 
 // ── Bundles ────────────────────────────────────────────────────────────────
 function renderBundles() {
-  let combos = S.filterFreeShip
-    ? S.combos.filter(c=>c.all_shipping_covered||c.any_shipping_covered)
-    : S.combos;
-  if (S.minCondition) combos = combos.filter(c=>c.listings.every(l=>meetsMin(l.condition)));
+  let combos = G.combos;
+  if (G.filterShip) combos=combos.filter(c=>c.all_shipping_covered||c.any_shipping_covered);
+  if (G.minCond)    combos=combos.filter(c=>c.listings.every(l=>meetsMin(l.condition)));
 
-  const bar = `
-    <div class="bundle-bar">
-      <div class="bundle-meta">${combos.length} seller${combos.length!==1?'s':''} carry all cards · ranked by total landed cost</div>
-      <label class="filter-toggle">
-        <input type="checkbox" ${S.filterFreeShip?'checked':''} onchange="S.filterFreeShip=this.checked;document.getElementById('tabBody').innerHTML=renderTab()">
-        Shipping covered only
-      </label>
-    </div>`;
+  const bar=`<div class="bundle-bar">
+    <div class="bundle-meta">${combos.length} seller${combos.length!==1?'s':''} carry all cards · cheapest first</div>
+    <label class="ftoggle"><input type="checkbox" ${G.filterShip?'checked':''} onchange="G.filterShip=this.checked;rerender()"> Covered shipping only</label>
+  </div>`;
 
-  if (!combos.length) return bar + `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">No sellers found</div><div class="empty-sub">No single seller carries all your cards.<br>Try broadening the set/condition filter or run the scraper with<br><code>--max-sellers 50</code> for better coverage.</div></div>`;
+  if (!combos.length) return bar+`<div class="empty">
+    <div class="empty-title">No sellers found carrying all cards</div>
+    <div class="empty-sub">Try running the scraper with <code>--max-sellers 50</code><br>or broaden the condition filter.</div>
+  </div>`;
 
-  return bar + combos.map((c,i) => {
-    const isTop = i===0;
-    const shipBadge = c.all_shipping_covered
-      ? `<span class="ship-badge ship-covered">✓ All shipping covered</span>`
-      : c.any_shipping_covered ? `<span class="ship-badge ship-threshold">⚡ Some covered</span>` : '';
-    const breakdown = c.total_shipping > 0
-      ? `<span class="bundle-breakdown"> + $${c.total_shipping.toFixed(2)} ship = <strong>$${c.total_landed.toFixed(2)}</strong> total</span>` : '';
-    return `
-    <div class="bundle${isTop?' top-pick':''}">
+  return bar+combos.map((c,i)=>{
+    const isTop=i===0;
+    const shipBadge=c.all_shipping_covered
+      ?`<span class="ship-all">✓ All shipping covered</span>`
+      :c.any_shipping_covered?`<span class="ship-some">⚡ Some covered</span>`:'';
+    const breakdown=c.total_shipping>0
+      ?`<span class="bundle-breakdown">+ $${c.total_shipping.toFixed(2)} ship = <strong>$${c.total_landed.toFixed(2)}</strong> total</span>`:'';
+    return `<div class="bundle${isTop?' best':''}">
       <div class="bundle-head">
         <span class="bundle-rank">#${i+1}</span>
         <span class="bundle-seller">${esc(c.seller)}</span>
-        ${isTop?`<span class="bundle-best-badge">BEST DEAL</span>`:''}
+        ${isTop?`<span class="best-badge">BEST DEAL</span>`:''}
         ${shipBadge}
-        <div class="bundle-prices">
-          <span class="bundle-total">$${c.total_price.toFixed(2)}</span>
-          ${breakdown}
-        </div>
+        <span class="bundle-total">$${c.total_price.toFixed(2)}</span>
+        ${breakdown}
       </div>
-      <div class="bundle-cards">
+      <div class="bundle-rows">
         ${c.listings.map(l=>`
-          <div class="bundle-card">
-            ${l.image?`<img class="bundle-card-img" src="${esc(l.image)}" loading="lazy" onerror="this.style.display='none'"/>`:`<div class="bundle-card-img-ph">🃏</div>`}
-            <div class="bundle-card-info">
-              <div class="bundle-card-name">${esc(l.card_name)}</div>
-              <div class="bundle-card-set">${esc(l.set)}</div>
-              ${l.printing?`<span class="print-badge">${esc(l.printing)}</span>`:''}
-              <div class="bundle-card-price">${esc(l.price)}</div>
-              <div class="bundle-card-cond"><span class="${condClass(l.condition)}">${esc(l.condition)}</span></div>
-              ${shipBadgeFor(l)}
-              <a class="bundle-card-link" href="${esc(l.card_url)}" target="_blank" rel="noopener">View on TCGPlayer ↗</a>
+          <div class="bundle-row">
+            ${l.image?`<img class="brow-img" src="${esc(l.image)}" loading="lazy" onerror="this.style.display='none'"/>`:`<div class="brow-img-ph">🃏</div>`}
+            <div class="brow-info">
+              <div class="brow-name">${esc(l.card_name)}</div>
+              <div class="brow-set">${esc(l.set)}</div>
+              ${l.printing?`<span class="pb">${esc(l.printing)}</span>`:''}
+            </div>
+            <div style="text-align:right">
+              <div class="brow-price">${esc(l.price)}</div>
+              <div class="brow-cond"><span class="${condClass(l.condition)}">${esc(l.condition)}</span></div>
+              <div class="brow-ship">${shipFor(l)}</div>
+              <a class="brow-link" href="${esc(l.card_url)}" target="_blank" rel="noopener">View on TCGPlayer ↗</a>
             </div>
           </div>`).join('')}
       </div>
-    </div>`}).join('') + exportRow();
-}
-
-// ── Cards ──────────────────────────────────────────────────────────────────
-function renderCards() {
-  if (!S.products.length) return `<div class="empty"><div class="empty-title">No cards loaded</div></div>`;
-  return `
-    <div class="card-grid">
-      ${S.products.map(p=>`
-        <div class="card-tile${S.filterCard===p.id?' sel':''}" onclick="S.filterCard=S.filterCard===\`${p.id}\`?null:\`${p.id}\`;document.getElementById('tabBody').innerHTML=renderTab()">
-          <div class="card-img-wrap">
-            ${p.image?`<img class="card-img" src="${esc(p.image)}" loading="lazy" onerror="this.parentElement.innerHTML='<span class=\\'card-img-placeholder\\'>🃏</span>'"/>`:`<span class="card-img-placeholder">🃏</span>`}
-            ${p.rarity?`<div class="card-rarity"><span class="${rarityClass(p.rarity)}">${esc(p.rarity)}</span></div>`:''}
-          </div>
-          <div class="card-info">
-            <div class="card-name">${esc(p.name)}</div>
-            <div class="card-set">${esc(p.set||p.groupName||'')}</div>
-            ${p.printing?`<span class="print-badge">${esc(p.printing)}</span>`:''}
-            <div class="card-price-row">
-              <span class="card-price-lbl">Market&nbsp;</span>
-              <span class="card-price">${esc(p.market_price||getMarketPriceFromProduct(p)||'—')}</span>
-            </div>
-          </div>
-        </div>`).join('')}
-    </div>` + exportRow();
-}
-
-function getMarketPriceFromProduct(p) {
-  const pr = p.prices;
-  if (!pr) return null;
-  for (const sub of Object.values(pr)) {
-    const nm = sub['Near Mint']||sub['NM'];
-    if (nm?.market) return `$${nm.market.toFixed(2)}`;
-  }
-  return null;
+    </div>`;
+  }).join('')+exportRow();
 }
 
 // ── Sellers ────────────────────────────────────────────────────────────────
 function renderSellers() {
-  let rows = S.sellers;
-  if (S.filterCard)     rows = rows.filter(s=>s.product_id===S.filterCard||s.card_name===S.filterCard);
-  if (S.filterFreeShip) rows = rows.filter(s=>s.shipping_qualifies);
-  if (S.minCondition)   rows = rows.filter(s=>meetsMin(s.condition));
+  let rows=G.sellers;
+  if (G.filterCard) rows=rows.filter(s=>s.card_name===G.filterCard);
+  if (G.filterShip) rows=rows.filter(s=>s.shipping_qualifies);
+  if (G.minCond)    rows=rows.filter(s=>meetsMin(s.condition));
 
-  const cardNames = [...new Set(S.sellers.map(s=>s.card_name))];
+  const names=[...new Set(G.sellers.map(s=>s.card_name))];
+  const toolbar=`<div class="stoolbar">
+    <div class="chips">
+      ${names.map(n=>`<span class="chip${G.filterCard===n?' on':''}" onclick="G.filterCard=G.filterCard===\`${n}\`?null:\`${n}\`;rerender()">${esc(n)}</span>`).join('')}
+      ${G.filterCard?`<span class="chip" onclick="G.filterCard=null;rerender()" style="color:var(--red);border-color:var(--red)">✕ clear</span>`:''}
+    </div>
+    <label class="ftoggle"><input type="checkbox" ${G.filterShip?'checked':''} onchange="G.filterShip=this.checked;rerender()"> Covered shipping</label>
+  </div>`;
 
-  const toolbar = `
-    <div class="sellers-toolbar">
-      <div class="chip-row">
-        ${cardNames.map(n=>`<span class="chip${S.filterCard===n?' active':''}" onclick="S.filterCard=S.filterCard===\`${n}\`?null:\`${n}\`;document.getElementById('tabBody').innerHTML=renderTab()">${esc(n)}</span>`).join('')}
-        ${S.filterCard?`<span class="chip" onclick="S.filterCard=null;document.getElementById('tabBody').innerHTML=renderTab()" style="color:var(--red);border-color:var(--red)">✕ clear</span>`:''}
-      </div>
-      <label class="filter-toggle">
-        <input type="checkbox" ${S.filterFreeShip?'checked':''} onchange="S.filterFreeShip=this.checked;document.getElementById('tabBody').innerHTML=renderTab()">
-        Covered shipping only
-      </label>
-    </div>`;
+  if (!rows.length) return toolbar+`<div class="empty"><div class="empty-title">No listings match</div></div>`;
 
-  if (!rows.length) return toolbar + `<div class="empty"><div class="empty-title">No listings match</div></div>`;
-
-  return toolbar + `
-    <table>
-      <thead><tr>
-        <th>Seller</th><th>Price</th><th>Card</th><th>Condition</th><th>Shipping</th><th>Qty</th><th></th>
-      </tr></thead>
-      <tbody>${rows.map(s=>`
-        <tr>
-          <td class="td-seller">${esc(s.seller)}</td>
-          <td>
-            <div class="td-price">${esc(s.price)}</div>
-            ${s.landed_cost&&s.landed_cost!==s.price_float?`<div class="td-landed">${esc(s.landed_display)} landed</div>`:''}
-          </td>
-          <td>
-            <div class="td-card">${esc(s.card_name)}</div>
-            <div class="td-set">${esc(s.set)}</div>
-            ${s.printing?`<span class="print-badge">${esc(s.printing)}</span>`:''}
-          </td>
-          <td><span class="${condClass(s.condition)}">${esc(s.condition)}</span></td>
-          <td>${shipBadgeFor(s)}</td>
-          <td style="color:var(--muted)">${esc(s.quantity)}</td>
-          <td><a class="td-link" href="${esc(s.card_url)}" target="_blank" rel="noopener">↗</a></td>
-        </tr>`).join('')}
-      </tbody>
-    </table>` + exportRow();
+  return toolbar+`<table>
+    <thead><tr><th>Seller</th><th>Price</th><th>Card</th><th>Condition</th><th>Shipping</th><th>Qty</th><th></th></tr></thead>
+    <tbody>${rows.map(s=>`<tr>
+      <td class="td-seller">${esc(s.seller)}</td>
+      <td>
+        <div class="td-price">${esc(s.price)}</div>
+        ${s.landed_cost&&s.landed_cost!==s.price_float?`<div class="td-landed">${esc(s.landed_display)} landed</div>`:''}
+      </td>
+      <td>
+        <div style="font-weight:600">${esc(s.card_name)}</div>
+        <div style="font-size:11px;color:var(--muted)">${esc(s.set)}</div>
+        ${s.printing?`<span class="pb">${esc(s.printing)}</span>`:''}
+      </td>
+      <td><span class="${condClass(s.condition)}">${esc(s.condition)}</span></td>
+      <td>${shipFor(s)}</td>
+      <td style="color:var(--muted)">${esc(s.quantity)}</td>
+      <td><a class="td-link" href="${esc(s.card_url)}" target="_blank" rel="noopener">↗</a></td>
+    </tr>`).join('')}</tbody>
+  </table>`+exportRow();
 }
 
 // ── Welcome ────────────────────────────────────────────────────────────────
 function renderWelcome() {
-  return `
-    <div class="empty" style="padding:80px 20px">
-      <div class="empty-icon">🃏</div>
-      <div class="empty-title">Find the best seller for your whole list</div>
-      <div class="empty-sub" style="max-width:420px;margin:0 auto">
-        Add cards on the left, then either:<br><br>
-        <strong>1. Run the scraper</strong> to get live seller data:<br>
-        <code style="display:inline-block;background:#f4f5f6;padding:6px 12px;border-radius:4px;margin:6px 0;font-size:12px">python scraper.py --cards "Charizard:Base Set" --game pokemon</code><br>
-        Then load <code>data/results.json</code> here.<br><br>
-        <strong>2. Load the catalog</strong> for fast card search:<br>
-        <code style="display:inline-block;background:#f4f5f6;padding:6px 12px;border-radius:4px;margin:6px 0;font-size:12px">python sync.py --game pokemon</code><br>
-        Then load <code>catalog/pokemon/index.json</code> here.
-      </div>
-    </div>`;
-}
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-function rarityClass(r) {
-  const v = (r||'').toLowerCase();
-  if(v.includes('mythic')||v.includes('mythical')) return 'rarity rarity-mythic';
-  if(v.includes('secret')) return 'rarity rarity-sr';
-  if(v.includes('ultra')||v.includes('ur')) return 'rarity rarity-ur';
-  if(v.includes('hyper')) return 'rarity rarity-sr';
-  if(v.includes('rare')) return 'rarity rarity-rare';
-  if(v.includes('uncommon')) return 'rarity rarity-uncommon';
-  return 'rarity rarity-other';
-}
-
-function condClass(c='') {
-  const v = c.toLowerCase();
-  if(v.includes('near')||v.includes('nm')) return 'cond cond-nm';
-  if(v.includes('lightly')||v.includes('lp')) return 'cond cond-lp';
-  if(v.includes('moderate')||v.includes('mp')) return 'cond cond-mp';
-  if(v.includes('heavy')||v.includes('hp')) return 'cond cond-hp';
-  if(v.includes('damage')) return 'cond cond-d';
-  return 'cond';
-}
-
-function shipBadgeFor(s) {
-  if(s.shipping_qualifies) return `<span class="ship-badge ship-covered">✓ Covered</span>`;
-  if(s.shipping_free_threshold>0) return `<span class="ship-badge ship-threshold">Free over $${s.shipping_free_threshold.toFixed(2)}</span>`;
-  if(s.shipping_cost>0) return `<span class="ship-badge ship-paid">+$${s.shipping_cost.toFixed(2)}</span>`;
-  const raw = s.shipping_display||s.shipping_raw||s.shipping||'';
-  if(raw&&raw!=='N/A') return `<span class="ship-badge ship-paid">${esc(raw)}</span>`;
-  return `<span class="ship-badge ship-paid">—</span>`;
-}
-
-function exportRow() {
-  return `<div class="export-row">
-    <button class="btn-export" onclick="exportCSV()">Export CSV</button>
-    <button class="btn-export" onclick="exportJSON()">Export JSON</button>
+  return `<div class="empty" style="padding:80px 20px">
+    <div class="empty-title">Find the cheapest seller for your whole list</div>
+    <div class="empty-sub" style="max-width:400px;margin:0 auto">
+      1. Add cards on the left<br>
+      2. Run the scraper to get live seller data:<br>
+      <code>python scraper.py --cards "Charizard:Base Set" --game pokemon</code><br><br>
+      3. Load <code>data/results.json</code> here<br><br>
+      For card autocomplete with images + prices, first run:<br>
+      <code>python sync.py --game pokemon</code><br>
+      then load <code>catalog/pokemon/index.json</code>
+    </div>
   </div>`;
 }
 
-function exportCSV() {
-  const rows=[['seller','price','card','set','condition','shipping','quantity','url'],...S.sellers.map(s=>[s.seller,s.price,s.card_name,s.set,s.condition,s.shipping_display||s.shipping,s.quantity,s.card_url])];
-  dl(rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n'),'tcg_sellers.csv','text/csv');
+// ── Helpers ────────────────────────────────────────────────────────────────
+function condClass(c=''){
+  const v=c.toLowerCase();
+  if(v.includes('near')||v.includes('nm'))return'cond nm';
+  if(v.includes('lightly')||v.includes('lp'))return'cond lp';
+  if(v.includes('moderate')||v.includes('mp'))return'cond mp';
+  if(v.includes('heavy')||v.includes('hp'))return'cond hp';
+  if(v.includes('damage'))return'cond dmg';
+  return'cond';
 }
-function exportJSON() { dl(JSON.stringify({products:S.products,sellers:S.sellers,combos:S.combos},null,2),'tcg_data.json','application/json'); }
+function shipFor(s){
+  if(s.shipping_qualifies)return`<span class="sh sh-ok">✓ Covered</span>`;
+  if(s.shipping_free_threshold>0)return`<span class="sh sh-thr">Free over $${s.shipping_free_threshold.toFixed(2)}</span>`;
+  if(s.shipping_cost>0)return`<span class="sh sh-pay">+$${s.shipping_cost.toFixed(2)}</span>`;
+  const raw=s.shipping_display||s.shipping_raw||s.shipping||'';
+  if(raw&&raw!=='N/A')return`<span class="sh sh-pay">${esc(raw)}</span>`;
+  return`<span class="sh sh-pay">—</span>`;
+}
+function exportRow(){return`<div class="export-row"><button class="exp-btn" onclick="exportCSV()">Export CSV</button><button class="exp-btn" onclick="exportJSON()">Export JSON</button></div>`;}
+function exportCSV(){const rows=[['seller','price','landed','card','set','condition','shipping','qty','url'],...G.sellers.map(s=>[s.seller,s.price,s.landed_display||'',s.card_name,s.set,s.condition,s.shipping_display||s.shipping||'',s.quantity,s.card_url])];dl(rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n'),'tcg_sellers.csv','text/csv');}
+function exportJSON(){dl(JSON.stringify({products:G.products,sellers:G.sellers,combos:G.combos},null,2),'tcg_data.json','application/json');}
 function dl(text,name,mime){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:mime}));a.download=name;a.click();}
-
 function setStatus(msg,cls=''){const el=document.getElementById('status');el.innerHTML=msg;el.className=cls;}
 function esc(s=''){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-// ── Setup checker ──────────────────────────────────────────────────────────
-const SETUP = [
-  {id:'python',name:'Python 3.8+',fix:'Download: <a href="https://www.python.org/downloads/" target="_blank">python.org/downloads</a>'},
-  {id:'playwright',name:'Playwright',fix:'Run: <code>pip install playwright</code>'},
-  {id:'chromium',name:'Chromium browser',fix:'Run: <code>playwright install chromium</code>'},
-  {id:'requests',name:'requests library',fix:'Run: <code>pip install requests</code>'},
-  {id:'sync',name:'Catalog synced',fix:'Run: <code>python sync.py --game pokemon</code> then load <code>catalog/pokemon/index.json</code>'},
+// ── Setup ──────────────────────────────────────────────────────────────────
+const SETUP=[
+  {id:'python',  name:'Python 3.8+',          fix:'<a href="https://www.python.org/downloads/" target="_blank">python.org/downloads</a>'},
+  {id:'requests',name:'requests library',      fix:'<code>pip install requests</code>'},
+  {id:'pw',      name:'Playwright + Chromium', fix:'<code>pip install playwright && playwright install chromium</code>'},
+  {id:'sync',    name:'Catalog synced',        fix:'<code>python sync.py --game pokemon</code> then load <code>catalog/pokemon/index.json</code>'},
 ];
-function loadSetupState(){try{return JSON.parse(localStorage.getItem('tcg_setup2')||'{{}}')}catch{return{}}}
-function saveSetupState(s){try{localStorage.setItem('tcg_setup2',JSON.stringify(s))}catch{}}
+function setupState(){try{return JSON.parse(localStorage.getItem('tcg_s3')||'{}')}catch{return{}}}
+function saveSetup(s){try{localStorage.setItem('tcg_s3',JSON.stringify(s))}catch{}}
 function renderSetup(){
-  const saved=loadSetupState();
-  const allDone=SETUP.every(s=>saved[s.id]);
+  const sv=setupState();
+  const all=SETUP.every(s=>sv[s.id]);
   document.getElementById('setupRows').innerHTML=SETUP.map(s=>`
     <div class="setup-row">
-      <div class="setup-icon">${saved[s.id]?'✅':'⬜'}</div>
+      <div style="font-size:14px;flex-shrink:0">${sv[s.id]?'✅':'⬜'}</div>
       <div class="setup-text">
         <div class="setup-name">${s.name}</div>
-        ${!saved[s.id]?`<div class="setup-fix">${s.fix}</div>`:''}
+        ${!sv[s.id]?`<div class="setup-fix">${s.fix}</div>`:''}
       </div>
-      <button class="setup-done-btn ${saved[s.id]?'done':'todo'}" onclick="toggleSetup('${s.id}')">${saved[s.id]?'undo':'done'}</button>
+      <button class="sdone ${sv[s.id]?'done':'todo'}" onclick="toggleSetup('${s.id}')">${sv[s.id]?'undo':'done'}</button>
     </div>`).join('');
-  if(allDone){const b=document.getElementById('setupBox');if(b)b.style.display='none';}
+  if(all)document.getElementById('setupBox').style.display='none';
 }
-function toggleSetup(id){const s=loadSetupState();s[id]=!s[id];saveSetupState(s);renderSetup();}
+function toggleSetup(id){const s=setupState();s[id]=!s[id];saveSetup(s);renderSetup();}
 let setupHidden=false;
 document.getElementById('collapseSetup').addEventListener('click',()=>{
   setupHidden=!setupHidden;
   document.getElementById('setupRows').style.display=setupHidden?'none':'';
   document.getElementById('collapseSetup').textContent=setupHidden?'show':'hide';
-});
-
-// Nav search mirrors first slot
-document.getElementById('navSearch').addEventListener('input', e => {
-  if(S.slots.length){S.slots[0].name=e.target.value;renderSlots();}
 });
 </script>
 </body>
