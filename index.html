@@ -98,16 +98,30 @@
     .ac-loading { padding: 10px 12px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
     .ac-empty  { padding: 10px 12px; font-family: var(--mono); font-size: 11px; color: var(--muted2); }
 
+    .slot-selectors { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+    .slot-selectors.three { grid-template-columns: 1fr 1fr; }
+    .slot-sel-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted2); margin-bottom: 3px; }
     .slot-edition { width: 100%; }
-    .slot-edition select, .slot-edition input {
+    .slot-edition select, .slot-edition input, .slot-sel select {
       width: 100%; background: var(--bg); border: 1px solid var(--border2); color: var(--text);
-      font-family: var(--mono); font-size: 11px; padding: 6px 10px; border-radius: 4px; outline: none;
+      font-family: var(--mono); font-size: 11px; padding: 6px 8px; border-radius: 4px; outline: none;
       transition: border-color 0.15s;
     }
-    .slot-edition select:focus, .slot-edition input:focus { border-color: var(--accent2); }
-    .slot-edition select option { background: var(--bg); }
+    .slot-edition select:focus, .slot-edition input:focus, .slot-sel select:focus { border-color: var(--accent2); }
+    .slot-edition select option, .slot-sel select option { background: var(--bg); }
     .edition-toggle { font-family: var(--mono); font-size: 10px; color: var(--accent2); cursor: pointer; margin-bottom: 6px; display: block; }
     .edition-toggle:hover { text-decoration: underline; }
+
+    /* Condition filter in sidebar */
+    .cond-filter { display: flex; flex-direction: column; gap: 4px; }
+    .cond-filter-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .cond-opts { display: flex; gap: 4px; flex-wrap: wrap; }
+    .cond-opt {
+      padding: 5px 10px; border-radius: 4px; border: 1px solid var(--border2); background: transparent;
+      font-family: var(--mono); font-size: 10px; color: var(--muted); cursor: pointer; transition: all 0.12s;
+    }
+    .cond-opt:hover { border-color: var(--accent2); color: var(--text); }
+    .cond-opt.active { background: var(--accent2); border-color: var(--accent2); color: #0a0a0c; font-weight: 500; }
 
     .add-card-btn {
       width: 100%; padding: 8px; background: transparent; border: 1px dashed var(--border2);
@@ -312,6 +326,21 @@
         <div id="status"></div>
       </div>
 
+      <!-- Condition filter -->
+      <div class="panel" style="animation-delay:0.06s">
+        <div class="panel-title">Minimum Condition</div>
+        <div class="cond-opts" id="condOpts">
+          <button class="cond-opt active" data-cond="" onclick="setMinCond(this, '')">Any</button>
+          <button class="cond-opt" data-cond="NM" onclick="setMinCond(this, 'NM')">NM</button>
+          <button class="cond-opt" data-cond="LP" onclick="setMinCond(this, 'LP')">LP+</button>
+          <button class="cond-opt" data-cond="MP" onclick="setMinCond(this, 'MP')">MP+</button>
+          <button class="cond-opt" data-cond="HP" onclick="setMinCond(this, 'HP')">HP+</button>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);margin-top:8px" id="condHelp">
+          Showing all conditions
+        </div>
+      </div>
+
       <div class="panel" style="animation-delay:0.08s">
         <label class="file-label">Or load saved results (.json)</label>
         <input type="file" id="fileInput" accept=".json" />
@@ -387,6 +416,7 @@ let state = {
   filterSeller: null,
   filterCard: null,
   filterFreeShip: false,
+  minCondition: "",
 };
 
 // ── Setup checker ──────────────────────────────────────────────────────────
@@ -501,7 +531,7 @@ document.querySelectorAll('.gpill').forEach(b => b.addEventListener('click', () 
 document.getElementById('addCardBtn').addEventListener('click', () => { addSlot(); renderSlots(); });
 
 function addSlot() {
-  state.slots.push({ name: '', edition: '', customEdition: '', useCustom: false });
+  state.slots.push({ name: '', set: '', printing: '', customEdition: '', useCustom: false });
 }
 
 function removeSlot(i) {
@@ -511,9 +541,9 @@ function removeSlot(i) {
 }
 
 function renderSlots() {
-  const sets         = state.game === 'mtg' ? MTG_SETS         : POKEMON_SETS;
-  const printings    = state.game === 'mtg' ? MTG_PRINTING_TYPES : POKEMON_PRINTING_TYPES;
-  const container    = document.getElementById('cardSlots');
+  const sets      = state.game === 'mtg' ? MTG_SETS           : POKEMON_SETS;
+  const printings = state.game === 'mtg' ? MTG_PRINTING_TYPES : POKEMON_PRINTING_TYPES;
+  const container = document.getElementById('cardSlots');
 
   container.innerHTML = state.slots.map((slot, i) => `
     <div class="card-slot" id="slot-${i}">
@@ -530,24 +560,32 @@ function renderSlots() {
         </div>
         ${state.slots.length > 1 ? `<button class="slot-remove" onclick="removeSlot(${i})">×</button>` : ''}
       </div>
-      <div class="slot-edition">
-        <span class="edition-toggle" onclick="toggleCustom(${i})">
-          ${slot.useCustom ? '↩ Use dropdown' : '✎ Type custom version'}
-        </span>
-        ${slot.useCustom
-          ? `<input type="text" placeholder="e.g. Extended Art, Alpha, Shadowless…" value="${esc(slot.customEdition)}"
-               oninput="state.slots[${i}].customEdition = this.value" />`
-          : `<select onchange="state.slots[${i}].edition = this.value">
-               <option value="">— Any version —</option>
-               <optgroup label="── Printing Type ──">
-                 ${printings.map(p => `<option value="${esc(p)}" ${slot.edition===p?'selected':''}>${esc(p)}</option>`).join('')}
-               </optgroup>
-               <optgroup label="── Set / Edition ──">
-                 ${sets.map(s => `<option value="${esc(s)}" ${slot.edition===s?'selected':''}>${esc(s)}</option>`).join('')}
-               </optgroup>
-             </select>`
-        }
-      </div>
+
+      ${slot.useCustom ? `
+        <div class="slot-edition" style="margin-top:8px">
+          <span class="edition-toggle" onclick="toggleCustom(${i})">↩ Use dropdowns</span>
+          <input type="text" placeholder="e.g. Extended Art · Alpha · Base Set 1st Edition…"
+            value="${esc(slot.customEdition)}"
+            oninput="state.slots[${i}].customEdition = this.value" />
+        </div>` : `
+        <div class="slot-selectors" style="margin-top:8px">
+          <div class="slot-sel">
+            <div class="slot-sel-label">Set</div>
+            <select onchange="state.slots[${i}].set = this.value">
+              <option value="">— Any set —</option>
+              ${sets.map(s => `<option value="${esc(s)}" ${slot.set===s?'selected':''}>${esc(s)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="slot-sel">
+            <div class="slot-sel-label">Printing</div>
+            <select onchange="state.slots[${i}].printing = this.value">
+              <option value="">— Standard —</option>
+              ${printings.map(p => `<option value="${esc(p)}" ${slot.printing===p?'selected':''}>${esc(p)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <span class="edition-toggle" style="margin-top:4px" onclick="toggleCustom(${i})">✎ Type custom version</span>`
+      }
     </div>
   `).join('');
 }
@@ -683,7 +721,9 @@ async function doSearch() {
   document.getElementById('searchBtn').disabled = true;
 
   const params = valid.map(s => {
-    const ed = s.useCustom ? s.customEdition : s.edition;
+    const ed = s.useCustom
+      ? s.customEdition
+      : [s.set, s.printing].filter(Boolean).join(' ');
     return `card=${encodeURIComponent(s.name.trim() + (ed ? ':' + ed : ''))}`;
   }).join('&');
 
@@ -768,9 +808,10 @@ function renderBundles() {
     return `<div class="empty"><div class="empty-icon">🔍</div><p>No sellers found carrying <strong>all</strong> requested cards.<br>Try broadening the edition filter or adding more sellers via the scraper.</p></div>`;
   }
 
-  const filtered = state.filterFreeShip
+  let filtered = state.filterFreeShip
     ? state.combos.filter(c => c.all_free_shipping || c.any_free_shipping || c.shipping_qualifies)
     : state.combos;
+  if (state.minCondition) filtered = filtered.filter(c => c.listings.every(l => meetsMinCond(l.condition)));
 
   const filterBar = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
@@ -846,6 +887,7 @@ function renderSellers() {
   let rows = state.sellers;
   if (state.filterCard)     rows = rows.filter(s => s.card_name === state.filterCard);
   if (state.filterFreeShip) rows = rows.filter(s => s.shipping_free || s.shipping_qualifies);
+  if (state.minCondition)   rows = rows.filter(s => meetsMinCond(s.condition));
 
   const header = `
     <div class="sellers-toolbar">
@@ -932,6 +974,33 @@ function dl(text, name, mime) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text],{type:mime}));
   a.download = name; a.click();
+}
+
+// ── Condition helpers ─────────────────────────────────────────────────────
+const COND_RANK = { 'nm': 5, 'near mint': 5, 'lp': 4, 'lightly played': 4, 'mp': 3, 'moderately played': 3, 'hp': 2, 'heavily played': 2, 'damaged': 1, 'd': 1 };
+const COND_MIN_RANK = { '': 0, 'NM': 5, 'LP': 4, 'MP': 3, 'HP': 2 };
+const COND_LABELS = { '': 'Showing all conditions', 'NM': 'Near Mint only', 'LP': 'Lightly Played or better', 'MP': 'Moderately Played or better', 'HP': 'Heavily Played or better' };
+
+function condRank(condStr) {
+  const s = (condStr || '').toLowerCase().trim();
+  for (const [k, v] of Object.entries(COND_RANK)) {
+    if (s.includes(k)) return v;
+  }
+  return 3; // default MP if unknown
+}
+
+function meetsMinCond(condStr) {
+  if (!state.minCondition) return true;
+  return condRank(condStr) >= COND_MIN_RANK[state.minCondition];
+}
+
+function setMinCond(btn, val) {
+  state.minCondition = val;
+  document.querySelectorAll('.cond-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const help = document.getElementById('condHelp');
+  if (help) help.textContent = COND_LABELS[val] || '';
+  renderTabContent();
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────

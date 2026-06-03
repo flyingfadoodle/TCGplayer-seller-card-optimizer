@@ -433,7 +433,9 @@ def _parse_shipping(shipping_str: str, item_price: float) -> dict:
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 def parse_card_arg(s: str):
-    """Parse 'Card Name:Edition' → (card_name, edition)"""
+    """Parse 'Card Name:Edition' → (card_name, edition)
+    Edition can be a set name, printing type, or both e.g. 'Bloomburrow Extended Art'
+    """
     if ":" in s:
         parts = s.split(":", 1)
         return parts[0].strip(), parts[1].strip()
