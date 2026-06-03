@@ -189,9 +189,11 @@ class TCGPlayerScraper:
                 if edition and edition.lower() not in set_.lower() and edition.lower() not in name.lower():
                     continue
 
+                printing = _detect_printing(name, set_)
                 cards.append({
                     "game": cfg["label"], "name": name, "set": set_,
-                    "edition": edition or "", "market_price": price, "url": link,
+                    "edition": edition or "", "printing": printing,
+                    "market_price": price, "url": link,
                     "search_key": f"{card_name}|{edition or ''}",
                 })
             except Exception as e:
@@ -257,6 +259,7 @@ class TCGPlayerScraper:
                     "card_name":            card["name"],
                     "set":                  card["set"],
                     "edition":              card["edition"],
+                    "printing":             card.get("printing", ""),
                     "game":                 card["game"],
                     "search_key":           card["search_key"],
                     "seller":               seller,
@@ -429,6 +432,52 @@ def _parse_shipping(shipping_str: str, item_price: float) -> dict:
     # Fallback — keep raw text
     return result
 
+
+
+def _detect_printing(name: str, set_str: str) -> str:
+    """
+    Detect the printing/treatment type from the card name or set string
+    as returned by TCGPlayer (e.g. "Black Lotus (Extended Art)" or set="Bloomburrow Extended Art").
+    Returns a short label like "Extended Art", "Borderless", "Foil", etc., or "" if standard.
+    """
+    combined = f"{name} {set_str}".lower()
+    PRINTINGS = [
+        ("Extended Art",            ["extended art"]),
+        ("Borderless",              ["borderless"]),
+        ("Showcase",                ["showcase"]),
+        ("Etched Foil",             ["etched foil"]),
+        ("Surge Foil",              ["surge foil"]),
+        ("Textured Foil",           ["textured foil"]),
+        ("Gilded Foil",             ["gilded foil"]),
+        ("Galaxy Foil",             ["galaxy foil"]),
+        ("Halo Foil",               ["halo foil"]),
+        ("Confetti Foil",           ["confetti foil"]),
+        ("Ripple Foil",             ["ripple foil"]),
+        ("Double Rainbow Foil",     ["double rainbow foil"]),
+        ("Oil Slick Raised Foil",   ["oil slick"]),
+        ("Step-and-Compleat Foil",  ["step-and-compleat"]),
+        ("Serialized",              ["serialized"]),
+        ("Retro Frame",             ["retro frame", "retro-frame"]),
+        ("Phyrexian",               ["phyrexian language"]),
+        ("Foil",                    ["foil"]),
+        ("Full Art",                ["full art"]),
+        ("Alternate Art",           ["alternate art"]),
+        ("Special Illustration Rare", ["special illustration rare", "sir"]),
+        ("Hyper Rare",              ["hyper rare"]),
+        ("Illustration Rare",       ["illustration rare"]),
+        ("Rainbow Rare",            ["rainbow rare"]),
+        ("Gold Secret Rare",        ["gold secret rare"]),
+        ("Secret Rare",             ["secret rare"]),
+        ("Reverse Holofoil",        ["reverse holo", "reverse holofoil"]),
+        ("Holofoil",                ["holofoil", "holo"]),
+        ("1st Edition",             ["1st edition", "first edition"]),
+        ("Shadowless",              ["shadowless"]),
+        ("Prerelease",              ["prerelease"]),
+    ]
+    for label, keywords in PRINTINGS:
+        if any(kw in combined for kw in keywords):
+            return label
+    return ""
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 

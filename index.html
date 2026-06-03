@@ -227,6 +227,14 @@
       font-family: var(--mono); font-size: 10px; background: var(--surface2); color: var(--muted);
     }
     .cond-nm { background: #0e2218; color: var(--green); }
+
+    /* Printing type badge */
+    .print-badge {
+      display: inline-block; padding: 2px 7px; border-radius: 4px;
+      font-family: var(--mono); font-size: 10px;
+      background: #1a1230; color: var(--accent3); border: 1px solid #2d1f50;
+      margin-top: 4px;
+    }
     .cond-lp { background: #1a2710; color: #86efac; }
     .cond-mp { background: #271f0a; color: var(--orange); }
     .cond-hp { background: #270d0d; color: var(--red); }
@@ -393,14 +401,6 @@ const MTG_PRINTING_TYPES = [
 // MTG sets
 const MTG_SETS = ["Alpha","Beta","Unlimited","Revised","4th Edition","5th Edition","6th Edition","7th Edition","8th Edition","9th Edition","10th Edition","Arabian Nights","Antiquities","Legends","The Dark","Fallen Empires","Ice Age","Homelands","Alliances","Mirage","Visions","Weatherlight","Tempest","Stronghold","Exodus","Urza's Saga","Urza's Legacy","Urza's Destiny","Mercadian Masques","Nemesis","Prophecy","Invasion","Planeshift","Apocalypse","Odyssey","Torment","Judgment","Onslaught","Legions","Scourge","Mirrodin","Darksteel","Fifth Dawn","Champions of Kamigawa","Ravnica","Innistrad","Return to Ravnica","Theros","Khans of Tarkir","Battle for Zendikar","Shadows over Innistrad","Kaladesh","Amonkhet","Ixalan","Guilds of Ravnica","War of the Spark","Throne of Eldraine","Ikoria","Kaldheim","Strixhaven","Innistrad: Midnight Hunt","Kamigawa: Neon Dynasty","Streets of New Capenna","The Brothers' War","March of the Machine","Wilds of Eldraine","The Lost Caverns of Ixalan","Murders at Karlov Manor","Outlaws of Thunder Junction","Bloomburrow","Duskmourn","Modern Horizons","Modern Horizons 2","Modern Horizons 3","Commander","Double Masters","Jumpstart"];
 
-// Pokémon printing types
-const POKEMON_PRINTING_TYPES = [
-  "Full Art","Secret Rare","Rainbow Rare","Gold Secret Rare","Alternate Art",
-  "Special Illustration Rare","Hyper Rare","Illustration Rare",
-  "Holofoil","Reverse Holofoil","Non-Holo","1st Edition","Shadowless",
-  "Prerelease Stamp","Staff Stamp","Pokemon Center Exclusive",
-];
-
 // Pokémon sets
 const POKEMON_SETS = ["Base Set","Base Set Shadowless","Base Set 1st Edition","Jungle","Fossil","Team Rocket","Gym Heroes","Gym Challenge","Neo Genesis","Neo Discovery","Neo Revelation","Neo Destiny","Legendary Collection","Expedition","Aquapolis","Skyridge","Ruby & Sapphire","Sandstorm","Dragon","Team Magma vs Team Aqua","Hidden Legends","FireRed & LeafGreen","Team Rocket Returns","Deoxys","Emerald","Unseen Forces","Delta Species","Legend Maker","Holon Phantoms","Crystal Guardians","Dragon Frontiers","Power Keepers","Diamond & Pearl","Mysterious Treasures","Secret Wonders","Great Encounters","Majestic Dawn","Legends Awakened","Stormfront","Platinum","Rising Rivals","Supreme Victors","Arceus","HeartGold SoulSilver","Unleashed","Undaunted","Triumphant","Call of Legends","Black & White","Emerging Powers","Noble Victories","Next Destinies","Dark Explorers","Dragons Exalted","Boundaries Crossed","Plasma Storm","Plasma Freeze","Plasma Blast","Legendary Treasures","XY","Flashfire","Furious Fists","Phantom Forces","Primal Clash","Roaring Skies","Ancient Origins","BREAKthrough","BREAKpoint","Fates Collide","Steam Siege","Evolutions","Sun & Moon","Guardians Rising","Burning Shadows","Crimson Invasion","Ultra Prism","Forbidden Light","Celestial Storm","Lost Thunder","Team Up","Unbroken Bonds","Unified Minds","Cosmic Eclipse","Sword & Shield","Rebel Clash","Darkness Ablaze","Champion's Path","Vivid Voltage","Battle Styles","Chilling Reign","Evolving Skies","Fusion Strike","Brilliant Stars","Astral Radiance","Lost Origin","Silver Tempest","Crown Zenith","Scarlet & Violet","Paldea Evolved","Obsidian Flames","Paradox Rift","Paldean Fates","Temporal Forces","Twilight Masquerade","Shrouded Fable","Stellar Crown","Surging Sparks","Prismatic Evolutions","Destined Rivals"];
 
@@ -531,7 +531,7 @@ document.querySelectorAll('.gpill').forEach(b => b.addEventListener('click', () 
 document.getElementById('addCardBtn').addEventListener('click', () => { addSlot(); renderSlots(); });
 
 function addSlot() {
-  state.slots.push({ name: '', set: '', printing: '', customEdition: '', useCustom: false });
+  state.slots.push({ name: '', set: '', customEdition: '', useCustom: false });
 }
 
 function removeSlot(i) {
@@ -541,8 +541,7 @@ function removeSlot(i) {
 }
 
 function renderSlots() {
-  const sets      = state.game === 'mtg' ? MTG_SETS           : POKEMON_SETS;
-  const printings = state.game === 'mtg' ? MTG_PRINTING_TYPES : POKEMON_PRINTING_TYPES;
+  const sets      = state.game === 'mtg' ? MTG_SETS : POKEMON_SETS;
   const container = document.getElementById('cardSlots');
 
   container.innerHTML = state.slots.map((slot, i) => `
@@ -563,28 +562,21 @@ function renderSlots() {
 
       ${slot.useCustom ? `
         <div class="slot-edition" style="margin-top:8px">
-          <span class="edition-toggle" onclick="toggleCustom(${i})">↩ Use dropdowns</span>
-          <input type="text" placeholder="e.g. Extended Art · Alpha · Base Set 1st Edition…"
+          <span class="edition-toggle" onclick="toggleCustom(${i})">↩ Use set dropdown</span>
+          <input type="text" placeholder="e.g. Alpha · Base Set 1st Edition · Extended Art…"
             value="${esc(slot.customEdition)}"
             oninput="state.slots[${i}].customEdition = this.value" />
         </div>` : `
-        <div class="slot-selectors" style="margin-top:8px">
-          <div class="slot-sel">
-            <div class="slot-sel-label">Set</div>
+        <div style="margin-top:8px">
+          <div class="slot-sel-label">Set</div>
+          <div class="slot-edition">
             <select onchange="state.slots[${i}].set = this.value">
               <option value="">— Any set —</option>
               ${sets.map(s => `<option value="${esc(s)}" ${slot.set===s?'selected':''}>${esc(s)}</option>`).join('')}
             </select>
           </div>
-          <div class="slot-sel">
-            <div class="slot-sel-label">Printing</div>
-            <select onchange="state.slots[${i}].printing = this.value">
-              <option value="">— Standard —</option>
-              ${printings.map(p => `<option value="${esc(p)}" ${slot.printing===p?'selected':''}>${esc(p)}</option>`).join('')}
-            </select>
-          </div>
-        </div>
-        <span class="edition-toggle" style="margin-top:4px" onclick="toggleCustom(${i})">✎ Type custom version</span>`
+          <span class="edition-toggle" style="margin-top:4px;display:block" onclick="toggleCustom(${i})">✎ Type custom version</span>
+        </div>`
       }
     </div>
   `).join('');
@@ -723,7 +715,7 @@ async function doSearch() {
   const params = valid.map(s => {
     const ed = s.useCustom
       ? s.customEdition
-      : [s.set, s.printing].filter(Boolean).join(' ');
+      : s.set || '';
     return `card=${encodeURIComponent(s.name.trim() + (ed ? ':' + ed : ''))}`;
   }).join('&');
 
@@ -856,7 +848,8 @@ function renderBundles() {
           <a class="combo-listing-item" href="${esc(l.card_url)}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block">
             <div class="cli-name">${esc(l.card_name)}</div>
             <div class="cli-set">${esc(l.set || l.edition)}</div>
-            <div class="cli-price">${esc(l.price)}</div>
+            ${l.printing ? `<span class="print-badge">${esc(l.printing)}</span>` : ''}
+            <div class="cli-price" style="margin-top:4px">${esc(l.price)}</div>
             <div class="cli-cond">${esc(l.condition)}</div>
             <div style="margin-top:4px">${shipBadgeFor(l)}</div>
           </a>`).join('')}
@@ -876,7 +869,8 @@ function renderCards() {
           <a class="ct-ext" href="${esc(c.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗</a>
           <div class="ct-name">${esc(c.name)}</div>
           <div class="ct-set">${esc(c.set)}</div>
-          <div class="ct-price-lbl">Market Price</div>
+          ${c.printing ? `<div class="print-badge">${esc(c.printing)}</div>` : ''}
+          <div class="ct-price-lbl" style="margin-top:6px">Market Price</div>
           <div class="ct-price">${esc(c.market_price)}</div>
         </div>`).join('')}
     </div>` + exportRow();
@@ -917,7 +911,7 @@ function renderSellers() {
           ? `<div class="td-landed">${esc(s.landed_display)} landed</div>`
           : ''}
       </td>
-      <td class="td-card">${esc(s.card_name)}<br><span style="color:var(--muted2);font-size:10px">${esc(s.set)}</span></td>
+      <td class="td-card">${esc(s.card_name)}<br><span style="color:var(--muted2);font-size:10px">${esc(s.set)}</span>${s.printing ? `<br><span class="print-badge" style="margin-top:3px">${esc(s.printing)}</span>` : ''}</td>
       <td><span class="cond-badge ${condClass(s.condition)}">${esc(s.condition)}</span></td>
       <td>${shipBadgeFor(s)}</td>
       <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${esc(s.quantity)}</td>
