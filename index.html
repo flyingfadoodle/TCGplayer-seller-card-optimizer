@@ -752,20 +752,18 @@ function renderBundles() {
       <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">${filtered.length} bundle${filtered.length!==1?'s':''} · ranked by total landed cost</div>
       <label class="filter-toggle">
         <input type="checkbox" ${state.filterFreeShip?'checked':''} onchange="state.filterFreeShip=this.checked;renderTabContent()">
-        Free / qualifies-for-free shipping only
+        Shipping covered ($5+ threshold) only
       </label>
     </div>`;
 
-  if (!filtered.length) return filterBar + `<div class="empty"><p>No bundles with free shipping found.<br>Uncheck the filter to see all results.</p></div>`;
+  if (!filtered.length) return filterBar + `<div class="empty"><p>No bundles with covered shipping found.<br>Uncheck the filter to see all results.</p></div>`;
 
   return filterBar + filtered.map((c, idx) => {
     const shipBadge = c.all_free_shipping
-      ? `<span class="ship-badge ship-free">🚚 All Free Shipping</span>`
-      : c.any_free_shipping
-        ? `<span class="ship-badge ship-qualifies">🚚 Some Free Shipping</span>`
-        : c.shipping_qualifies
-          ? `<span class="ship-badge ship-qualifies">🚚 Qualifies for Free</span>`
-          : '';
+      ? `<span class="ship-badge ship-free">✓ All shipping covered</span>`
+      : c.any_free_shipping || c.shipping_qualifies
+        ? `<span class="ship-badge ship-qualifies">⚡ Some shipping covered</span>`
+        : '';
 
     const landedDiff = c.total_landed !== c.total_price
       ? `<span class="combo-breakdown"> + <strong>${c.total_shipping >= 0 ? '$'+c.total_shipping.toFixed(2) : '?'}</strong> shipping = <strong>${esc(c.total_landed_display)}</strong> landed</span>`
@@ -867,16 +865,21 @@ function renderSellers() {
 }
 
 function shipBadgeFor(s) {
-  // Handle both old format (shipping string) and new structured format
-  if (s.shipping_free)       return `<span class="ship-badge ship-free">Free</span>`;
-  if (s.shipping_qualifies)  return `<span class="ship-badge ship-qualifies">Free ✓</span>`;
-  if (s.shipping_free_threshold > 0) {
-    const need = (s.shipping_free_threshold - s.price_float).toFixed(2);
+  // shipping_qualifies = card price meets the free threshold → shipping covered
+  if (s.shipping_qualifies) return `<span class="ship-badge ship-free">✓ Covered</span>`;
+
+  // Has a threshold but price doesn't meet it
+  if (s.shipping_free_threshold > 0 && !s.shipping_qualifies) {
+    const need = Math.max(0, s.shipping_free_threshold - s.price_float).toFixed(2);
     return `<span class="ship-badge ship-paid">Free over $${s.shipping_free_threshold.toFixed(2)}</span>`;
   }
-  if (s.shipping_cost > 0)   return `<span class="ship-badge ship-paid">+$${s.shipping_cost.toFixed(2)}</span>`;
-  if (s.shipping_raw && s.shipping_raw !== 'N/A') return `<span class="ship-badge ship-unknown">${esc(s.shipping_raw)}</span>`;
-  if (s.shipping && s.shipping !== 'N/A')         return `<span class="ship-badge ship-unknown">${esc(s.shipping)}</span>`;
+
+  // Known paid shipping cost
+  if (s.shipping_cost > 0) return `<span class="ship-badge ship-paid">+$${s.shipping_cost.toFixed(2)}</span>`;
+
+  // Raw text fallback (old format or unparsed)
+  const raw = s.shipping_display || s.shipping_raw || s.shipping || '';
+  if (raw && raw !== 'N/A') return `<span class="ship-badge ship-unknown">${esc(raw)}</span>`;
   return `<span class="ship-badge ship-unknown">—</span>`;
 }
 

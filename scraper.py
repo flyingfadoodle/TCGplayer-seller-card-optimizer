@@ -344,26 +344,21 @@ def _parse_price(price_str: str) -> float:
 
 def _parse_shipping(shipping_str: str, item_price: float) -> dict:
     """
-    Parse TCGPlayer shipping text into structured fields.
+    Parse TCGPlayer shipping text.
+
+    On TCGPlayer, sellers set a free shipping threshold (commonly $5).
+    If the card price meets or exceeds that threshold, shipping is covered.
+    There is no unconditional 'Free Shipping' label — it's always threshold-based.
 
     Handles patterns like:
-      "Free Shipping"
-      "Free"
-      "$0.00 Shipping"
-      "+ $0.99 Shipping"
       "Free Shipping on Orders Over $5.00"
       "Free over $5"
       "Free on orders $5+"
+      "Ships Free"
+      "+ $0.99 Shipping"
       "+ $1.49"
-      "N/A"
-      (empty)
-
-    Returns:
-      free            — True if shipping is unconditionally free
-      free_threshold  — dollar amount needed for free shipping (0 if always free, None if unknown)
-      qualifies       — True if item_price meets the threshold for free shipping
-      shipping_cost   — estimated shipping cost in dollars (0 if free, -1 if unknown)
-      display         — clean human-readable string
+      "$0.99"
+      "N/A" / empty
     """
     raw = shipping_str.strip() if shipping_str else ""
     low = raw.lower()
@@ -379,15 +374,9 @@ def _parse_shipping(shipping_str: str, item_price: float) -> dict:
     if not raw or raw == "N/A":
         return result
 
-    # ── Unconditionally free ──────────────────────────────────────────────
-    if re.search(r'\bfree\b', low) and not re.search(r'over|above|order|minimum|\$\s*\d', low):
-        result.update(free=True, free_threshold=0.0, qualifies=True,
-                      shipping_cost=0.0, display="Free Shipping")
-        return result
-
-    # ── Free over $X ─────────────────────────────────────────────────────
-    threshold_match = re.search(r'free\b.*?\$\s*([\d,]+\.?\d*)', low)
-    if threshold_match:
+    # ── Free over $X threshold (most common on TCGPlayer) ─────────────────
+    threshold_match = re.search(r'\$\s*([\d,]+\.?\d*)', low)
+    if threshold_match and re.search(r'free|ship', low):
         threshold = float(threshold_match.group(1).replace(",", ""))
         qualifies = item_price >= threshold
         result.update(
@@ -395,22 +384,31 @@ def _parse_shipping(shipping_str: str, item_price: float) -> dict:
             free_threshold=threshold,
             qualifies=qualifies,
             shipping_cost=0.0 if qualifies else -1.0,
-            display=f"Free over ${threshold:.2f}" + (" ✓" if qualifies else f" (need ${threshold - item_price:.2f} more)"),
+            display=(
+                f"Free over ${threshold:.2f} ✓ (covered)"
+                if qualifies else
+                f"Free over ${threshold:.2f} — need ${max(0, threshold - item_price):.2f} more"
+            ),
         )
         return result
 
-    # ── $0.00 shipping (free but not labeled) ────────────────────────────
-    zero_match = re.search(r'\$\s*0\.00', low)
-    if zero_match:
-        result.update(free=True, free_threshold=0.0, qualifies=True,
-                      shipping_cost=0.0, display="Free Shipping ($0.00)")
+    # ── $0.00 shipping ────────────────────────────────────────────────────
+    if re.search(r'\$\s*0\.00', raw):
+        result.update(
+            free=False, free_threshold=0.0, qualifies=True,
+            shipping_cost=0.0, display="Covered ($0.00)",
+        )
         return result
 
-    # ── Paid shipping: + $X.XX ───────────────────────────────────────────
+    # ── Paid shipping: + $X.XX ────────────────────────────────────────────
     cost_match = re.search(r'\$\s*([\d,]+\.?\d*)', raw)
     if cost_match:
         cost = float(cost_match.group(1).replace(",", ""))
-        result.update(shipping_cost=cost, display=f"+${cost:.2f} Shipping")
+        if cost == 0.0:
+            result.update(free=False, free_threshold=0.0, qualifies=True,
+                          shipping_cost=0.0, display="Covered ($0.00)")
+        else:
+            result.update(shipping_cost=cost, display=f"+${cost:.2f} Shipping")
         return result
 
     # Fallback — keep raw text
