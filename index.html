@@ -324,34 +324,39 @@ function addSlot() { G.slots.push({ name:'', set:'', custom:'', useCustom:false 
 function removeSlot(i) { G.slots.splice(i,1); if(!G.slots.length) addSlot(); renderSlots(); }
 function toggleCustom(i) { G.slots[i].useCustom = !G.slots[i].useCustom; renderSlots(); }
 
+function buildSetOptions(selectedSet) {
+  return sets().map(function(x) {
+    return '<option value="' + esc(x) + '"' + (selectedSet===x?' selected':'') + '>' + esc(x) + '</option>';
+  }).join('');
+}
+
 function renderSlots() {
-  document.getElementById('slots').innerHTML = G.slots.map((s,i) => `
-    <div class="slot" id="slot${i}">
-      <div class="slot-lbl">Card ${i+1}</div>
-      <div class="slot-row" style="position:relative">
-        <input class="slot-name" type="text" placeholder="Card name…" value="${esc(s.name)}"
-          autocomplete="off"
-          oninput="onInput(${i},this.value)"
-          onkeydown="onKey(event,${i})"
-          onblur="schedClose(${i})"
-          onfocus="if(this.value.length>=2)onInput(${i},this.value)"/>
-        ${G.slots.length>1?`<button class="slot-rm" onclick="removeSlot(${i})">×</button>`:''}
-        <div class="ac" id="ac${i}" style="display:none"></div>
-      </div>
-      ${s.useCustom ? `
-        <input class="slot-custom-input" type="text" placeholder="e.g. Alpha, Extended Art, Base Set 1st Edition…"
-          value="${esc(s.custom)}" oninput="G.slots[${i}].custom=this.value"/>
-        <span class="slot-custom-lnk" onclick="toggleCustom(${i})">↩ Use set dropdown</span>
-      ` : `
-        <div class="slot-foot">
-          <select class="slot-set" onchange="G.slots[${i}].set=this.value">
-            <option value="">Any set</option>
-            ${sets().map(x=>`<option value="${esc(x)}"${s.set===x?' selected':''}>${esc(x)}</option>`).join('')}
-          </select>
-        </div>
-        <span class="slot-custom-lnk" onclick="toggleCustom(${i})">✎ Custom version</span>
-      `}
-    </div>`).join('');
+  var html = '';
+  for (var i = 0; i < G.slots.length; i++) {
+    var s = G.slots[i];
+    var rmBtn = G.slots.length > 1 ? '<button class="slot-rm" onclick="removeSlot('+i+')">×</button>' : '';
+    var footer = '';
+    if (s.useCustom) {
+      footer = '<input class="slot-custom-input" type="text" placeholder="e.g. Alpha, Extended Art, Base Set 1st Edition…" value="' + esc(s.custom) + '" oninput="G.slots['+i+'].custom=this.value"/>' +
+               '<span class="slot-custom-lnk" onclick="toggleCustom('+i+')">↩ Use set dropdown</span>';
+    } else {
+      footer = '<div class="slot-foot"><select class="slot-set" onchange="G.slots['+i+'].set=this.value"><option value="">Any set</option>' +
+               buildSetOptions(s.set) + '</select></div>' +
+               '<span class="slot-custom-lnk" onclick="toggleCustom('+i+')">✎ Custom version</span>';
+    }
+    html += '<div class="slot" id="slot' + i + '">' +
+            '<div class="slot-lbl">Card ' + (i+1) + '</div>' +
+            '<div class="slot-row" style="position:relative">' +
+            '<input class="slot-name" type="text" placeholder="Card name…" value="' + esc(s.name) + '" autocomplete="off"' +
+            ' oninput="onInput(' + i + ',this.value)"' +
+            ' onkeydown="onKey(event,' + i + ')"' +
+            ' onblur="schedClose(' + i + ')"' +
+            ' onfocus="if(this.value.length>=2)onInput(' + i + ',this.value)"/>' +
+            rmBtn +
+            '<div class="ac" id="ac' + i + '" style="display:none"></div>' +
+            '</div>' + footer + '</div>';
+  }
+  document.getElementById('slots').innerHTML = html;
 }
 
 // ── Autocomplete ───────────────────────────────────────────────────────────
@@ -428,18 +433,17 @@ function renderAC(i, q, results) {
   const d = document.getElementById(`ac${i}`); if (!d) return;
   if (!results.length) { d.innerHTML=`<div class="ac-msg">No results</div>`; d.style.display='block'; return; }
   const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
-  d.innerHTML = results.slice(0,10).map((r,idx) => {
-    const hl = r.name.replace(re,'<mark>$1</mark>');
-    const pr = r.price ? `<span class="ac-price">$${r.price.toFixed(2)}</span>` : '';
-    const pb = r.printing ? `<span class="pb" style="margin-right:3px">${esc(r.printing)}</span>` : '';
-    return `<div class="ac-item" onmousedown="selAC(${i},${idx})" onmouseover="setAF(${i},${idx})">
-      ${r.image?`<img class="ac-img" src="${esc(r.image)}" loading="lazy" onerror="this.style.display='none'"/>`:`<div class="ac-img-ph"></div>`}
-      <div style="flex:1;min-width:0">
-        <div class="ac-name">${hl}</div>
-        <div class="ac-meta">${pb}${esc(r.set)}</div>
-      </div>
-      ${pr}
-    </div>`;
+  d.innerHTML = results.slice(0,10).map(function(r,idx) {
+    var hl = r.name.replace(re,'<mark>$1</mark>');
+    var pr = r.price ? '<span class="ac-price">$' + r.price.toFixed(2) + '</span>' : '';
+    var pb = r.printing ? '<span class="pb" style="margin-right:3px">' + esc(r.printing) + '</span>' : '';
+    var img = r.image
+      ? '<img class="ac-img" src="' + esc(r.image) + '" loading="lazy" onerror="this.style.display='none'"/>'
+      : '<div class="ac-img-ph"></div>';
+    return '<div class="ac-item" onmousedown="selAC(' + i + ',' + idx + ')" onmouseover="setAF(' + i + ',' + idx + ')">' +
+      img +
+      '<div style="flex:1;min-width:0"><div class="ac-name">' + hl + '</div><div class="ac-meta">' + pb + esc(r.set) + '</div></div>' +
+      pr + '</div>';
   }).join('');
   d.style.display = 'block';
 }
@@ -698,15 +702,15 @@ function saveSetup(s){try{localStorage.setItem('tcg_s3',JSON.stringify(s))}catch
 function renderSetup(){
   const sv=setupState();
   const all=SETUP.every(s=>sv[s.id]);
-  document.getElementById('setupRows').innerHTML=SETUP.map(s=>`
-    <div class="setup-row">
-      <div style="font-size:14px;flex-shrink:0">${sv[s.id]?'✅':'⬜'}</div>
-      <div class="setup-text">
-        <div class="setup-name">${s.name}</div>
-        ${!sv[s.id]?`<div class="setup-fix">${s.fix}</div>`:''}
-      </div>
-      <button class="sdone ${sv[s.id]?'done':'todo'}" onclick="toggleSetup('${s.id}')">${sv[s.id]?'undo':'done'}</button>
-    </div>`).join('');
+  document.getElementById('setupRows').innerHTML=SETUP.map(function(s) {
+    var done = sv[s.id];
+    return '<div class="setup-row">' +
+      '<div style="font-size:14px;flex-shrink:0">' + (done?'✅':'⬜') + '</div>' +
+      '<div class="setup-text"><div class="setup-name">' + s.name + '</div>' +
+      (!done ? '<div class="setup-fix">' + s.fix + '</div>' : '') + '</div>' +
+      '<button class="sdone ' + (done?'done':'todo') + '" onclick="toggleSetup('' + s.id + '')">' + (done?'undo':'done') + '</button>' +
+      '</div>';
+  }).join('');
   // Never auto-hide — always show setup so user knows what's needed
 }
 function toggleSetup(id){const s=setupState();s[id]=!s[id];saveSetup(s);renderSetup();}
