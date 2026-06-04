@@ -272,7 +272,7 @@ td{padding:9px 12px;vertical-align:middle}
     <div class="box-head">
       Setup
       <div style="display:flex;gap:8px;align-items:center">
-        <span onclick="Object.keys(setupState()).forEach(k=>{const s=setupState();delete s[k];saveSetup(s);});renderSetup();" style="font-size:10px;color:var(--muted2);cursor:pointer;text-decoration:underline">reset</span>
+        <span id="resetSetup" style="font-size:10px;color:var(--muted2);cursor:pointer;text-decoration:underline">reset</span>
         <button id="collapseSetup" style="background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer">hide</button>
       </div>
     </div>
@@ -710,6 +710,8 @@ function renderSetup(){
   // Never auto-hide — always show setup so user knows what's needed
 }
 function toggleSetup(id){const s=setupState();s[id]=!s[id];saveSetup(s);renderSetup();}
+function resetSetup(){const s={};saveSetup(s);renderSetup();}
+document.getElementById('resetSetup').addEventListener('click', resetSetup);
 let setupHidden=false;
 document.getElementById('collapseSetup').addEventListener('click',()=>{
   setupHidden=!setupHidden;
