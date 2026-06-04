@@ -213,6 +213,7 @@ td{padding:9px 12px;vertical-align:middle}
 
 <nav class="nav">
   <div class="nav-brand">TCG<span>Optimizer</span></div>
+  <div id="gameLabel" style="font-size:11px;color:rgba(255,255,255,.5);white-space:nowrap">Pokémon</div>
   <div class="nav-search">
     <input id="navSearch" type="text" placeholder="Search cards…" autocomplete="off"/>
     <svg class="nav-icon" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -270,7 +271,10 @@ td{padding:9px 12px;vertical-align:middle}
   <div class="box" id="setupBox">
     <div class="box-head">
       Setup
-      <button id="collapseSetup" style="background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer">hide</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span onclick="Object.keys(setupState()).forEach(k=>{const s=setupState();delete s[k];saveSetup(s);});renderSetup();" style="font-size:10px;color:var(--muted2);cursor:pointer;text-decoration:underline">reset</span>
+        <button id="collapseSetup" style="background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer">hide</button>
+      </div>
     </div>
     <div id="setupRows"></div>
   </div>
@@ -308,6 +312,7 @@ document.querySelectorAll('.nav-pill').forEach(b => b.addEventListener('click', 
   document.querySelectorAll('.nav-pill').forEach(x => x.classList.remove('active'));
   b.classList.add('active');
   G.game = b.dataset.game;
+  document.getElementById('gameLabel').textContent = G.game === 'mtg' ? 'Magic: The Gathering' : 'Pokémon';
   // Reset set selections so MTG sets don't bleed into Pokémon and vice versa
   G.slots.forEach(s => { s.set = ''; s.custom = ''; s.useCustom = false; });
   renderSlots();
@@ -702,7 +707,7 @@ function renderSetup(){
       </div>
       <button class="sdone ${sv[s.id]?'done':'todo'}" onclick="toggleSetup('${s.id}')">${sv[s.id]?'undo':'done'}</button>
     </div>`).join('');
-  if(all)document.getElementById('setupBox').style.display='none';
+  // Never auto-hide — always show setup so user knows what's needed
 }
 function toggleSetup(id){const s=setupState();s[id]=!s[id];saveSetup(s);renderSetup();}
 let setupHidden=false;
