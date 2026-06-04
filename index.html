@@ -306,7 +306,11 @@ renderSlots(); renderSetup(); renderMain();
 // ── Game ───────────────────────────────────────────────────────────────────
 document.querySelectorAll('.nav-pill').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('.nav-pill').forEach(x => x.classList.remove('active'));
-  b.classList.add('active'); G.game = b.dataset.game; renderSlots();
+  b.classList.add('active');
+  G.game = b.dataset.game;
+  // Reset set selections so MTG sets don't bleed into Pokémon and vice versa
+  G.slots.forEach(s => { s.set = ''; s.custom = ''; s.useCustom = false; });
+  renderSlots();
 }));
 
 // ── Slots ──────────────────────────────────────────────────────────────────
