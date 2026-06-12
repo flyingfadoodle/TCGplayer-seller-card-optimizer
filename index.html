@@ -384,7 +384,7 @@ async function fetchAC(i, q) {
         const r = await fetch(`https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(q)}&include_extras=true`);
         const j = await r.json();
         results = (j.data||[]).map(n=>({name:n,base:n.replace(/\s*\(.*?\)\s*$/,'').trim(),set:'',image:'',price:null,printing:getPrinting(n)}));
-      } else {
+      }
     } catch(e) {}
   }
 
