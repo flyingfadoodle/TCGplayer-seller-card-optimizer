@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-TCGPlayer Seller Scraper — v3
+TCGPlayer Seller Scraper — MTG only
 Cross-references the local catalog (from sync.py) to find exact product pages,
 then scrapes seller listings and finds sellers who carry ALL requested cards.
 
@@ -8,10 +8,9 @@ Usage:
     # First sync catalog (once per day):
     python sync.py
 
-    # Then search by exact product name from catalog:
-    python scraper.py --cards "Black Lotus" "Tropical Island" --game mtg
-    python scraper.py --cards "Black Lotus:Alpha" "Tropical Island:Unlimited" --game mtg
-    python scraper.py --cards "Charizard:Base Set" --game pokemon
+    # Then search:
+    python scraper.py --cards "Black Lotus" "Tropical Island"
+    python scraper.py --cards "Black Lotus:Alpha" "Tropical Island:Unlimited"
 
     # Results saved as data/results.json — load in index.html
 """
@@ -22,7 +21,6 @@ import re
 import sys
 import time
 from pathlib import Path
-from urllib.parse import quote_plus
 
 try:
     from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
@@ -35,27 +33,21 @@ DATA_DIR    = Path("data")
 
 CONDITIONS = ["Near Mint", "Lightly Played", "Moderately Played", "Heavily Played", "Damaged"]
 
-MTG_PRINTING_TYPES = [
-    "Extended Art", "Borderless", "Showcase", "Etched Foil", "Foil", "Non-Foil",
-    "Retro Frame", "Gilded Foil", "Textured Foil", "Surge Foil", "Serialized",
-    "Step-and-Compleat Foil", "Phyrexian Language", "Galaxy Foil", "Halo Foil",
+PRINTING_TYPES = [
+    "Extended Art", "Borderless", "Showcase", "Etched Foil", "Surge Foil",
+    "Textured Foil", "Gilded Foil", "Galaxy Foil", "Serialized", "Retro Frame",
+    "Step-and-Compleat Foil", "Phyrexian Language", "Halo Foil",
     "Oil Slick Raised Foil", "Double Rainbow Foil", "Confetti Foil", "Ripple Foil",
-]
-
-POKEMON_PRINTING_TYPES = [
-    "Full Art", "Secret Rare", "Rainbow Rare", "Gold Secret Rare", "Alternate Art",
-    "Special Illustration Rare", "Hyper Rare", "Illustration Rare",
-    "Holofoil", "Reverse Holofoil", "Non-Holo", "1st Edition", "Shadowless",
-    "Prerelease Stamp", "Staff Stamp",
+    "Foil", "Non-Foil",
 ]
 
 
 # ── Catalog lookup ────────────────────────────────────────────────────────────
 
-def load_index(game: str) -> list[dict]:
-    path = CATALOG_DIR / game / "index.json"
+def load_index() -> list[dict]:
+    path = CATALOG_DIR / "mtg" / "index.json"
     if not path.exists():
-        print(f"❌  No catalog found for {game}. Run: python sync.py --game {game}")
+        print("❌  No catalog found. Run: python sync.py")
         return []
     data = json.loads(path.read_text())
     return data.get("index", [])
@@ -63,10 +55,6 @@ def load_index(game: str) -> list[dict]:
 
 def find_products(index: list[dict], card_name: str, edition: str = None,
                   max_results: int = 8) -> list[dict]:
-    """
-    Fuzzy search the catalog index for products matching card_name + optional edition.
-    Returns list of matching products sorted by relevance.
-    """
     q_name    = card_name.lower().strip()
     q_edition = edition.lower().strip() if edition else None
 
@@ -76,15 +64,11 @@ def find_products(index: list[dict], card_name: str, edition: str = None,
         set_  = p["set"].lower()
         clean = p["clean"].lower()
 
-        # Must contain card name
         if q_name not in name and q_name not in clean:
             continue
-
-        # Edition filter
         if q_edition and q_edition not in name and q_edition not in set_:
             continue
 
-        # Score: exact match > starts with > contains
         score = 0
         if name == q_name or clean == q_name:
             score = 100
@@ -93,7 +77,6 @@ def find_products(index: list[dict], card_name: str, edition: str = None,
         else:
             score = 60
 
-        # Bonus for edition match
         if q_edition:
             if q_edition in set_:
                 score += 20
@@ -135,7 +118,6 @@ class Scraper:
         if self._pw:      self._pw.stop()
 
     def scrape_sellers(self, product: dict, max_sellers: int = 30) -> list[dict]:
-        """Go directly to a product URL and scrape seller listings."""
         url = product.get("url")
         if not url:
             return []
@@ -147,7 +129,6 @@ class Scraper:
         self._dismiss_popups()
         self._page.wait_for_timeout(2_500)
 
-        # Click "All Sellers" if present
         for label in ["All Sellers", "View All Listings", "All Listings"]:
             btn = self._page.query_selector(
                 f"button:has-text('{label}'), a:has-text('{label}')"
@@ -191,41 +172,39 @@ class Scraper:
                 printing = _detect_printing(product["name"], product["set"])
 
                 sellers.append({
-                    "product_id":           product["id"],
-                    "card_name":            product["name"],
-                    "set":                  product["set"],
-                    "game":                 product["game"],
-                    "image":                product.get("image", ""),
-                    "rarity":               product.get("rarity", ""),
-                    "printing":             printing,
-                    "card_url":             url,
-                    "search_key":           product.get("search_key", ""),
-                    "seller":               seller,
-                    "price":                price,
-                    "price_float":          price_f,
-                    "condition":            condition,
-                    "shipping_raw":         shipping,
-                    "shipping_display":     ship["display"],
-                    "shipping_cost":        ship["shipping_cost"],
-                    "shipping_free":        ship["free"],
+                    "product_id":              product["id"],
+                    "card_name":               product["name"],
+                    "set":                     product["set"],
+                    "game":                    "mtg",
+                    "image":                   product.get("image", ""),
+                    "rarity":                  product.get("rarity", ""),
+                    "printing":                printing,
+                    "card_url":                url,
+                    "search_key":              product.get("search_key", ""),
+                    "seller":                  seller,
+                    "price":                   price,
+                    "price_float":             price_f,
+                    "condition":               condition,
+                    "shipping_raw":            shipping,
+                    "shipping_display":        ship["display"],
+                    "shipping_cost":           ship["shipping_cost"],
+                    "shipping_free":           ship["free"],
                     "shipping_free_threshold": ship["free_threshold"],
-                    "shipping_qualifies":   ship["qualifies"],
-                    "landed_cost":          landed,
-                    "landed_display":       f"${landed:.2f}" if landed > 0 else "N/A",
-                    "quantity":             qty,
+                    "shipping_qualifies":      ship["qualifies"],
+                    "landed_cost":             landed,
+                    "landed_display":          f"${landed:.2f}" if landed > 0 else "N/A",
+                    "quantity":                qty,
                 })
             except Exception as e:
-                print(f"        ⚠️   Row error: {e}")
+                print(f"        ⚠️  Row error: {e}")
 
-        print(f"        → {len(sellers)} listing(s)")
+        print(f"        → {len(sellers)} listings scraped")
         return sellers
 
     def _dismiss_popups(self):
         for sel in [
-            "#onetrust-accept-btn-handler",
-            "button[class*='accept']",
-            "button:has-text('Accept')",
-            "button:has-text('Close')",
+            "button[aria-label='Close']", ".modal-close", "[class*='close-button']",
+            "button:has-text('Accept')", "button:has-text('OK')",
         ]:
             try:
                 btn = self._page.query_selector(sel)
@@ -252,22 +231,22 @@ def find_combos(sellers: list[dict], search_keys: list[str]) -> list[dict]:
     for seller, by_key in by_seller.items():
         if not all(k in by_key for k in search_keys):
             continue
-        listings       = [by_key[k] for k in search_keys]
-        total_price    = sum(l["price_float"]  for l in listings)
-        total_shipping = sum(max(l["shipping_cost"], 0) for l in listings)
-        total_landed   = sum(l["landed_cost"]   for l in listings)
+        listings        = [by_key[k] for k in search_keys]
+        total_price     = sum(l["price_float"]  for l in listings)
+        total_shipping  = sum(max(l["shipping_cost"], 0) for l in listings)
+        total_landed    = sum(l["landed_cost"]   for l in listings)
         combos.append({
-            "seller":                seller,
-            "listings":              listings,
-            "total_price":           total_price,
-            "total_shipping":        total_shipping,
-            "total_landed":          total_landed,
-            "total_price_display":   f"${total_price:.2f}",
-            "total_shipping_display": f"${total_shipping:.2f}",
-            "total_landed_display":  f"${total_landed:.2f}",
-            "all_shipping_covered":  all(l["shipping_qualifies"] for l in listings),
-            "any_shipping_covered":  any(l["shipping_qualifies"] for l in listings),
-            "cards_count":           len(listings),
+            "seller":                  seller,
+            "listings":                listings,
+            "total_price":             total_price,
+            "total_shipping":          total_shipping,
+            "total_landed":            total_landed,
+            "total_price_display":     f"${total_price:.2f}",
+            "total_shipping_display":  f"${total_shipping:.2f}",
+            "total_landed_display":    f"${total_landed:.2f}",
+            "all_shipping_covered":    all(l["shipping_qualifies"] for l in listings),
+            "any_shipping_covered":    any(l["shipping_qualifies"] for l in listings),
+            "cards_count":             len(listings),
         })
 
     combos.sort(key=lambda c: (c["total_landed"] == 0, c["total_landed"]))
@@ -313,28 +292,17 @@ def _parse_shipping(raw: str, item_price: float) -> dict:
 def _detect_printing(name: str, set_str: str) -> str:
     combined = f"{name} {set_str}".lower()
     CHECKS = [
-        ("Extended Art",          ["extended art"]),
-        ("Borderless",            ["borderless"]),
-        ("Showcase",              ["showcase"]),
-        ("Etched Foil",           ["etched foil"]),
-        ("Surge Foil",            ["surge foil"]),
-        ("Textured Foil",         ["textured foil"]),
-        ("Gilded Foil",           ["gilded foil"]),
-        ("Galaxy Foil",           ["galaxy foil"]),
-        ("Serialized",            ["serialized"]),
-        ("Retro Frame",           ["retro frame"]),
-        ("Foil",                  ["foil"]),
-        ("Full Art",              ["full art"]),
-        ("Alternate Art",         ["alternate art"]),
-        ("Special Illustration Rare", ["special illustration rare"]),
-        ("Hyper Rare",            ["hyper rare"]),
-        ("Illustration Rare",     ["illustration rare"]),
-        ("Rainbow Rare",          ["rainbow rare"]),
-        ("Secret Rare",           ["secret rare"]),
-        ("Reverse Holofoil",      ["reverse holo"]),
-        ("Holofoil",              ["holofoil"]),
-        ("1st Edition",           ["1st edition"]),
-        ("Shadowless",            ["shadowless"]),
+        ("Extended Art",   ["extended art"]),
+        ("Borderless",     ["borderless"]),
+        ("Showcase",       ["showcase"]),
+        ("Etched Foil",    ["etched foil"]),
+        ("Surge Foil",     ["surge foil"]),
+        ("Textured Foil",  ["textured foil"]),
+        ("Gilded Foil",    ["gilded foil"]),
+        ("Galaxy Foil",    ["galaxy foil"]),
+        ("Serialized",     ["serialized"]),
+        ("Retro Frame",    ["retro frame"]),
+        ("Foil",           ["foil"]),
     ]
     for label, kws in CHECKS:
         if any(kw in combined for kw in kws):
@@ -353,14 +321,12 @@ def parse_card_arg(s: str):
 
 def main():
     ap = argparse.ArgumentParser(
-        description="Scrape TCGPlayer sellers using the local catalog for exact URL matching."
+        description="Scrape TCGPlayer sellers for MTG cards."
     )
     ap.add_argument("--cards",       nargs="+", required=True,
                     help="Cards: 'Name' or 'Name:Edition'")
-    ap.add_argument("--game",        choices=["mtg", "pokemon"], required=True)
     ap.add_argument("--max-sellers", type=int, default=30)
-    ap.add_argument("--max-results", type=int, default=5,
-                    help="Max catalog results to show per card")
+    ap.add_argument("--max-results", type=int, default=5)
     ap.add_argument("--output",      type=str, default="data/results.json")
     ap.add_argument("--visible",     action="store_true")
     ap.add_argument("--no-sellers",  action="store_true")
@@ -368,16 +334,13 @@ def main():
 
     DATA_DIR.mkdir(exist_ok=True)
 
-    # Load catalog
-    print(f"\nLoading {args.game} catalog…")
-    index = load_index(args.game)
+    print(f"\nLoading MTG catalog…")
+    index = load_index()
     if not index:
         return
     print(f"  {len(index):,} products loaded")
 
-    card_requests = [parse_card_arg(c) for c in args.cards]
-
-    # Find products in catalog
+    card_requests     = [parse_card_arg(c) for c in args.cards]
     selected_products = []
     search_keys       = []
 
@@ -389,7 +352,6 @@ def main():
             print("    ⚠️   No matches in catalog. Run sync.py first.")
             continue
 
-        # Show top match; in a real UI the user would pick
         chosen = matches[0]
         sk = f"{card_name}|{edition or ''}"
         chosen["search_key"] = sk
@@ -402,7 +364,6 @@ def main():
             for m in matches[1:]:
                 print(f"         • {m['name']} ({m['set']})")
 
-    # Scrape sellers
     all_sellers = []
     if not args.no_sellers and selected_products:
         print(f"\n{'═'*56}")
@@ -414,10 +375,8 @@ def main():
                 all_sellers.extend(sellers)
                 time.sleep(0.5)
 
-    # Combo matching
     combos = find_combos(all_sellers, search_keys) if all_sellers else []
 
-    # Summary
     print(f"\n{'═'*56}")
     print(f"  Cards matched:   {len(selected_products)}")
     print(f"  Seller listings: {len(all_sellers)}")
@@ -428,11 +387,10 @@ def main():
             print(f"    {i}. {c['seller']:<30} {c['total_landed_display']}")
     print(f"{'═'*56}\n")
 
-    # Save
     out = Path(args.output)
     out.parent.mkdir(exist_ok=True)
     payload = {
-        "game":        args.game,
+        "game":        "mtg",
         "search_keys": search_keys,
         "products":    selected_products,
         "sellers":     all_sellers,

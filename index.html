@@ -213,15 +213,11 @@ td{padding:9px 12px;vertical-align:middle}
 
 <nav class="nav">
   <div class="nav-brand">TCG<span>Optimizer</span></div>
-  <div id="gameLabel" style="font-size:11px;color:rgba(255,255,255,.5);white-space:nowrap">Pokémon</div>
   <div class="nav-search">
     <input id="navSearch" type="text" placeholder="Search cards…" autocomplete="off"/>
     <svg class="nav-icon" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
   </div>
-  <div class="nav-pills">
-    <button class="nav-pill active" data-game="pokemon">Pokémon</button>
-    <button class="nav-pill" data-game="mtg">MTG</button>
-  </div>
+  <div class="nav-pills"><span style="font-size:12px;color:rgba(255,255,255,.6);font-weight:500">Magic: The Gathering</span></div>
 </nav>
 
 <div class="shell">
@@ -262,7 +258,7 @@ td{padding:9px 12px;vertical-align:middle}
         <div class="file-zone-txt">
           <strong>Choose file</strong> or drop here<br>
           Load <code>data/results.json</code> from scraper<br>
-          or <code>catalog/[game]/index.json</code>
+          or <code>catalog/mtg/index.json</code>
         </div>
       </div>
     </div>
@@ -289,7 +285,7 @@ td{padding:9px 12px;vertical-align:middle}
 <script>
 // ── State ──────────────────────────────────────────────────────────────────
 const G = {
-  game: 'pokemon',
+  game: 'mtg',
   slots: [],
   catalog: [],
   products: [], sellers: [], combos: [], searchKeys: [],
@@ -300,23 +296,13 @@ const G = {
 };
 
 const MTG_SETS = ["Alpha","Beta","Unlimited","Revised","4th Edition","5th Edition","6th Edition","7th Edition","8th Edition","9th Edition","10th Edition","Arabian Nights","Antiquities","Legends","The Dark","Fallen Empires","Ice Age","Homelands","Alliances","Mirage","Visions","Weatherlight","Tempest","Stronghold","Exodus","Urza's Saga","Urza's Legacy","Urza's Destiny","Mercadian Masques","Nemesis","Prophecy","Invasion","Planeshift","Apocalypse","Odyssey","Torment","Judgment","Onslaught","Legions","Scourge","Mirrodin","Darksteel","Fifth Dawn","Champions of Kamigawa","Ravnica","Innistrad","Return to Ravnica","Theros","Khans of Tarkir","Battle for Zendikar","Shadows over Innistrad","Kaladesh","Amonkhet","Ixalan","Guilds of Ravnica","War of the Spark","Throne of Eldraine","Ikoria","Kaldheim","Strixhaven","Innistrad: Midnight Hunt","Kamigawa: Neon Dynasty","Streets of New Capenna","The Brothers' War","March of the Machine","Wilds of Eldraine","The Lost Caverns of Ixalan","Murders at Karlov Manor","Outlaws of Thunder Junction","Bloomburrow","Duskmourn","Modern Horizons","Modern Horizons 2","Modern Horizons 3","Commander","Double Masters","Jumpstart"];
-const POKE_SETS = ["Base Set","Base Set Shadowless","Base Set 1st Edition","Jungle","Fossil","Team Rocket","Gym Heroes","Gym Challenge","Neo Genesis","Neo Discovery","Neo Revelation","Neo Destiny","Legendary Collection","Expedition","Aquapolis","Skyridge","Ruby & Sapphire","Sandstorm","Dragon","Team Magma vs Team Aqua","Hidden Legends","FireRed & LeafGreen","Team Rocket Returns","Deoxys","Emerald","Unseen Forces","Delta Species","Legend Maker","Holon Phantoms","Crystal Guardians","Dragon Frontiers","Power Keepers","Diamond & Pearl","Mysterious Treasures","Secret Wonders","Great Encounters","Majestic Dawn","Legends Awakened","Stormfront","Platinum","Rising Rivals","Supreme Victors","Arceus","HeartGold SoulSilver","Unleashed","Undaunted","Triumphant","Call of Legends","Black & White","Emerging Powers","Noble Victories","Next Destinies","Dark Explorers","Dragons Exalted","Boundaries Crossed","Plasma Storm","Plasma Freeze","Plasma Blast","Legendary Treasures","XY","Flashfire","Furious Fists","Phantom Forces","Primal Clash","Roaring Skies","Ancient Origins","BREAKthrough","BREAKpoint","Fates Collide","Steam Siege","Evolutions","Sun & Moon","Guardians Rising","Burning Shadows","Crimson Invasion","Ultra Prism","Forbidden Light","Celestial Storm","Lost Thunder","Team Up","Unbroken Bonds","Unified Minds","Cosmic Eclipse","Sword & Shield","Rebel Clash","Darkness Ablaze","Champion's Path","Vivid Voltage","Battle Styles","Chilling Reign","Evolving Skies","Fusion Strike","Brilliant Stars","Astral Radiance","Lost Origin","Silver Tempest","Crown Zenith","Scarlet & Violet","Paldea Evolved","Obsidian Flames","Paradox Rift","Paldean Fates","Temporal Forces","Twilight Masquerade","Shrouded Fable","Stellar Crown","Surging Sparks","Prismatic Evolutions","Destined Rivals"];
-const sets = () => G.game === 'mtg' ? MTG_SETS : POKE_SETS;
+const sets = () => MTG_SETS;
 
 // ── Init ───────────────────────────────────────────────────────────────────
 addSlot(); addSlot();
 renderSlots(); renderSetup(); renderMain();
 
-// ── Game ───────────────────────────────────────────────────────────────────
-document.querySelectorAll('.nav-pill').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('.nav-pill').forEach(x => x.classList.remove('active'));
-  b.classList.add('active');
-  G.game = b.dataset.game;
-  document.getElementById('gameLabel').textContent = G.game === 'mtg' ? 'Magic: The Gathering' : 'Pokémon';
-  // Reset set selections so MTG sets don't bleed into Pokémon and vice versa
-  G.slots.forEach(s => { s.set = ''; s.custom = ''; s.useCustom = false; });
-  renderSlots();
-}));
+// MTG only — no game switching
 
 // ── Slots ──────────────────────────────────────────────────────────────────
 document.getElementById('addBtn').addEventListener('click', () => { addSlot(); renderSlots(); });
@@ -399,12 +385,6 @@ async function fetchAC(i, q) {
         const j = await r.json();
         results = (j.data||[]).map(n=>({name:n,base:n.replace(/\s*\(.*?\)\s*$/,'').trim(),set:'',image:'',price:null,printing:getPrinting(n)}));
       } else {
-        const r = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${encodeURIComponent(q)}*"&select=name,set,images&pageSize=15`);
-        const j = await r.json();
-        const seen=new Set();
-        results = (j.data||[]).filter(c=>{if(seen.has(c.name))return false;seen.add(c.name);return true;})
-          .map(c=>({name:c.name,base:c.name,set:c.set?.name||'',image:c.images?.small||'',price:null,printing:''}));
-      }
     } catch(e) {}
   }
 
@@ -656,11 +636,11 @@ function renderWelcome() {
     <div class="empty-sub" style="max-width:400px;margin:0 auto">
       1. Add cards on the left<br>
       2. Run the scraper to get live seller data:<br>
-      <code>python scraper.py --cards "Charizard:Base Set" --game pokemon</code><br><br>
+      <code>python scraper.py --cards "Black Lotus:Alpha"</code><br><br>
       3. Load <code>data/results.json</code> here<br><br>
       For card autocomplete with images + prices, first run:<br>
-      <code>python sync.py --game pokemon</code><br>
-      then load <code>catalog/pokemon/index.json</code>
+      <code>python sync.py</code><br>
+      then load <code>catalog/mtg/index.json</code>
     </div>
   </div>`;
 }
@@ -695,7 +675,7 @@ const SETUP=[
   {id:'python',  name:'Python 3.8+',          fix:'<a href="https://www.python.org/downloads/" target="_blank">python.org/downloads</a>'},
   {id:'requests',name:'requests library',      fix:'<code>pip install requests</code>'},
   {id:'pw',      name:'Playwright + Chromium', fix:'<code>pip install playwright && playwright install chromium</code>'},
-  {id:'sync',    name:'Catalog synced',        fix:'<code>python sync.py --game pokemon</code> then load <code>catalog/pokemon/index.json</code>'},
+  {id:'sync',    name:'Catalog synced',        fix:'<code>python sync.py</code> then load <code>catalog/mtg/index.json</code>'},
 ];
 function setupState(){try{return JSON.parse(localStorage.getItem('tcg_s3')||'{}')}catch{return{}}}
 function saveSetup(s){try{localStorage.setItem('tcg_s3',JSON.stringify(s))}catch{}}
